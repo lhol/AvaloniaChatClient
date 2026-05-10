@@ -8,14 +8,17 @@ public record ChatMessage
     public DateTimeOffset Timestamp { get; init; } = DateTimeOffset.UtcNow;
     public long? TtftMs { get; init; }
     public long? TotalMs { get; init; }
-    public int? InputTokens { get; init; }   // F-03: tokens/words of triggering user message
-    public int? OutputTokens { get; init; }  // F-03: tokens/words of this assistant message
+    public int? InputTokens { get; init; }
+    public int? OutputTokens { get; init; }
+    public string? ServerName { get; init; }   // G-09
+    public string? ModelName { get; init; }    // G-09
 }
 
 public record ChatSession
 {
     public Guid Id { get; init; } = Guid.NewGuid();
     public string Title { get; init; } = "Neue Session";
+    public string? Comment { get; init; }       // G-03
     public Guid ServerId { get; init; }
     public string ModelId { get; init; } = string.Empty;
     public DateTimeOffset CreatedAt { get; init; } = DateTimeOffset.UtcNow;
@@ -27,6 +30,7 @@ public record ChatSession
 public record SessionSummary(
     Guid Id,
     string Title,
+    string? Comment,       // G-03
     Guid ServerId,
     string ModelId,
     DateTimeOffset CreatedAt,
@@ -37,7 +41,15 @@ public record CreateSessionRequest(
     Guid ServerId,
     string ModelId,
     string? Title = null,
+    string? Comment = null,   // G-03
     List<Guid>? SkillIds = null);
+
+// G-04: PATCH /sessions/{id}/meta
+public record UpdateSessionMetaRequest(
+    string? Title = null,
+    string? Comment = null,
+    Guid? ServerId = null,
+    string? ModelId = null);
 
 public record SendMessageRequest(
     string Content,
@@ -58,7 +70,9 @@ public record SseChunk(
     long? TtftMs,
     long? TotalMs,
     int? InputTokens = null,
-    int? OutputTokens = null);
+    int? OutputTokens = null,
+    string? ServerName = null,   // G-09
+    string? ModelName = null);   // G-09
 
 // Sent as a special SSE data event when streaming fails
 public record SseErrorEvent(string ErrorMessage, Guid ErrorId);

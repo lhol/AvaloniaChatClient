@@ -48,20 +48,20 @@ public class BackendApiClient
 
     public async Task<ServerProfile?> CreateServerAsync(
         string name, string url, int port, string? token, LlmProtocol protocol,
-        CancellationToken ct = default)
+        string? defaultModel = null, CancellationToken ct = default)
     {
         var response = await _http.PostAsJsonAsync("/servers",
-            new { name, url, port, token, protocol }, JsonOpts, ct);
+            new { name, url, port, token, protocol, defaultModel }, JsonOpts, ct);
         response.EnsureSuccessStatusCode();
         return await response.Content.ReadFromJsonAsync<ServerProfile>(JsonOpts, ct);
     }
 
     public async Task<ServerProfile?> UpdateServerAsync(
         Guid id, string name, string url, int port, string? token, LlmProtocol protocol,
-        CancellationToken ct = default)
+        string? defaultModel = null, CancellationToken ct = default)
     {
         var response = await _http.PutAsJsonAsync($"/servers/{id}",
-            new { name, url, port, token, protocol }, JsonOpts, ct);
+            new { name, url, port, token, protocol, defaultModel }, JsonOpts, ct);
         if (response.StatusCode == System.Net.HttpStatusCode.NotFound) return null;
         response.EnsureSuccessStatusCode();
         return await response.Content.ReadFromJsonAsync<ServerProfile>(JsonOpts, ct);
@@ -77,6 +77,17 @@ public class BackendApiClient
     {
         var response = await _http.PostAsync($"/servers/{id}/test", null, ct);
         return await response.Content.ReadFromJsonAsync<TestConnectionResponse>(JsonOpts, ct);
+    }
+
+    // G-08: list models available on a server
+    public async Task<List<string>> GetModelsAsync(Guid serverId, CancellationToken ct = default)
+    {
+        try
+        {
+            var result = await _http.GetFromJsonAsync<List<string>>($"/servers/{serverId}/models", JsonOpts, ct);
+            return result ?? [];
+        }
+        catch { return []; }
     }
 
     // ── Sessions ─────────────────────────────────────────────────────────────
@@ -101,6 +112,18 @@ public class BackendApiClient
     {
         var response = await _http.DeleteAsync($"/sessions/{id}", ct);
         return response.IsSuccessStatusCode;
+    }
+
+    // G-04: update session title, comment, server, model
+    public async Task<ChatSession?> UpdateSessionMetaAsync(
+        Guid id, string? title = null, string? comment = null,
+        Guid? serverId = null, string? modelId = null, CancellationToken ct = default)
+    {
+        var response = await _http.PatchAsJsonAsync($"/sessions/{id}/meta",
+            new { title, comment, serverId, modelId }, JsonOpts, ct);
+        if (response.StatusCode == System.Net.HttpStatusCode.NotFound) return null;
+        response.EnsureSuccessStatusCode();
+        return await response.Content.ReadFromJsonAsync<ChatSession>(JsonOpts, ct);
     }
 
     public async Task<ExportSkillResponse?> ExportSessionAsSkillAsync(Guid id, CancellationToken ct = default)

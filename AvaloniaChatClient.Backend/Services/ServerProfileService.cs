@@ -41,7 +41,8 @@ public class ServerProfileService
             Url = request.Url,
             Port = request.Port,
             Token = request.Token,
-            Protocol = request.Protocol
+            Protocol = request.Protocol,
+            DefaultModel = request.DefaultModel ?? "default"
         };
         _cache.Add(profile);
         await SaveAsync();
@@ -60,7 +61,8 @@ public class ServerProfileService
             Url = request.Url,
             Port = request.Port,
             Token = request.Token,
-            Protocol = request.Protocol
+            Protocol = request.Protocol,
+            DefaultModel = request.DefaultModel ?? _cache[index].DefaultModel
         };
         _cache[index] = updated;
         await SaveAsync();

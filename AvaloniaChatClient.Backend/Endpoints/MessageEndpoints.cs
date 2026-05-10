@@ -75,7 +75,8 @@ public static class MessageEndpoints
                         sw.Stop();
                         inputTokens = chunk.InputTokens ?? CountWords(request.Content);
                         outputTokens = chunk.OutputTokens ?? CountWords(fullContent.ToString());
-                        var done = new SseChunk(null, true, ttftMs ?? 0, sw.ElapsedMilliseconds, inputTokens, outputTokens);
+                        var done = new SseChunk(null, true, ttftMs ?? 0, sw.ElapsedMilliseconds,
+                            inputTokens, outputTokens, profile.Name, session.ModelId);
                         await WriteSseAsync(ctx, done, ct);
                         await ctx.Response.WriteAsync("data: [DONE]\n\n", ct);
                         break;
@@ -91,7 +92,7 @@ public static class MessageEndpoints
 
                 await sessionSvc.UpdateLastAssistantMessageAsync(
                     id, fullContent.ToString(), ttftMs ?? 0, sw.ElapsedMilliseconds,
-                    inputTokens, outputTokens);
+                    inputTokens, outputTokens, profile.Name, session.ModelId);
             }
             catch (OperationCanceledException)
             {

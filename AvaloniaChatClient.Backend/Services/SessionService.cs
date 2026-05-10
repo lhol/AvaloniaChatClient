@@ -38,6 +38,7 @@ public class SessionService
         {
             Id = Guid.NewGuid(),
             Title = request.Title ?? "Neue Session",
+            Comment = request.Comment,
             ServerId = request.ServerId,
             ModelId = request.ModelId,
             SkillIds = request.SkillIds ?? []
@@ -54,6 +55,23 @@ public class SessionService
         return true;
     }
 
+    // G-04: update title, comment, serverId, modelId
+    public async Task<ChatSession?> UpdateMetaAsync(Guid id, UpdateSessionMetaRequest request)
+    {
+        var session = await LoadFileAsync(FilePath(id));
+        if (session is null) return null;
+        session = session with
+        {
+            Title = request.Title ?? session.Title,
+            Comment = request.Comment != null ? (request.Comment == "" ? null : request.Comment) : session.Comment,
+            ServerId = request.ServerId ?? session.ServerId,
+            ModelId = request.ModelId ?? session.ModelId,
+            UpdatedAt = DateTimeOffset.UtcNow
+        };
+        await SaveAsync(session);
+        return session;
+    }
+
     public async Task<ChatMessage> AddMessageAsync(Guid sessionId, ChatMessage message)
     {
         var session = await LoadFileAsync(FilePath(sessionId))
@@ -66,7 +84,8 @@ public class SessionService
 
     public async Task UpdateLastAssistantMessageAsync(
         Guid sessionId, string fullContent, long ttftMs, long totalMs,
-        int? inputTokens = null, int? outputTokens = null)
+        int? inputTokens = null, int? outputTokens = null,
+        string? serverName = null, string? modelName = null)
     {
         var session = await LoadFileAsync(FilePath(sessionId))
             ?? throw new KeyNotFoundException($"Session {sessionId} not found");
@@ -81,7 +100,9 @@ public class SessionService
                 TtftMs = ttftMs,
                 TotalMs = totalMs,
                 InputTokens = inputTokens,
-                OutputTokens = outputTokens
+                OutputTokens = outputTokens,
+                ServerName = serverName,
+                ModelName = modelName
             };
         }
         session = session with { UpdatedAt = DateTimeOffset.UtcNow };
@@ -104,5 +125,5 @@ public class SessionService
     private string FilePath(Guid id) => Path.Combine(_sessionsDir, $"{id}.json");
 
     private static SessionSummary ToSummary(ChatSession s) =>
-        new(s.Id, s.Title, s.ServerId, s.ModelId, s.CreatedAt, s.UpdatedAt, s.Messages.Count);
+        new(s.Id, s.Title, s.Comment, s.ServerId, s.ModelId, s.CreatedAt, s.UpdatedAt, s.Messages.Count);
 }

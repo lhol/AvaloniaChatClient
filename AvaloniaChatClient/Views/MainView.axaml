@@ -54,34 +54,52 @@
           <!-- Session-Bereich mit Tab-Leiste -->
           <Grid RowDefinitions="Auto,*"
                 IsVisible="{Binding ActiveSession, Converter={x:Static ObjectConverters.IsNotNull}}">
-            <!-- Session-Tabs -->
-            <ScrollViewer Grid.Row="0" HorizontalScrollBarVisibility="Auto"
-                          VerticalScrollBarVisibility="Disabled">
-              <ItemsControl ItemsSource="{Binding Sessions}">
-                <ItemsControl.ItemsPanel>
-                  <ItemsPanelTemplate>
-                    <StackPanel Orientation="Horizontal"/>
-                  </ItemsPanelTemplate>
-                </ItemsControl.ItemsPanel>
-                <ItemsControl.ItemTemplate>
-                  <DataTemplate DataType="vm:ChatSessionViewModel">
-                    <!-- F-07: tooltip shows session GUID -->
-                    <Button Margin="2,4,0,0" Padding="10,4" CornerRadius="6,6,0,0"
-                            ToolTip.Tip="{Binding SessionId, StringFormat='ID: {0}'}"
-                            Command="{Binding $parent[ItemsControl].((vm:MainViewModel)DataContext).ActivateSessionCommand}"
-                            CommandParameter="{Binding}">
-                      <StackPanel Orientation="Horizontal" Spacing="6">
-                        <TextBlock Text="{Binding Title}" VerticalAlignment="Center"/>
-                        <Button Content="✕" Padding="2,0"
-                                Command="{Binding $parent[ItemsControl].((vm:MainViewModel)DataContext).CloseSessionCommand}"
-                                CommandParameter="{Binding}"
-                                Background="Transparent"/>
-                      </StackPanel>
-                    </Button>
-                  </DataTemplate>
-                </ItemsControl.ItemTemplate>
-              </ItemsControl>
-            </ScrollViewer>
+            <!-- G-01: Session-Tabs optisch abgesetzt -->
+            <Border Grid.Row="0" BorderThickness="0,0,0,1"
+                    BorderBrush="{DynamicResource SystemControlBackgroundBaseLowBrush}"
+                    Background="{DynamicResource SystemControlBackgroundChromeMediumBrush}">
+              <ScrollViewer HorizontalScrollBarVisibility="Auto"
+                            VerticalScrollBarVisibility="Disabled">
+                <ItemsControl ItemsSource="{Binding Sessions}">
+                  <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                      <StackPanel Orientation="Horizontal"/>
+                    </ItemsPanelTemplate>
+                  </ItemsControl.ItemsPanel>
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate DataType="vm:ChatSessionViewModel">
+                      <!-- G-02: active tab highlighted; G-03: tooltip with comment -->
+                      <Button Margin="2,4,0,0" Padding="10,4" CornerRadius="6,6,0,0"
+                              ToolTip.Tip="{Binding TabTooltip}"
+                              Command="{Binding $parent[ItemsControl].((vm:MainViewModel)DataContext).ActivateSessionCommand}"
+                              CommandParameter="{Binding}"
+                              Classes.active="{Binding IsActive}">
+                        <StackPanel Orientation="Vertical" Spacing="1">
+                          <StackPanel Orientation="Horizontal" Spacing="6">
+                            <TextBlock Text="{Binding Title}" VerticalAlignment="Center"/>
+                            <!-- G-04: right-click context menu -->
+                            <Button Content="✕" Padding="2,0"
+                                    Command="{Binding $parent[ItemsControl].((vm:MainViewModel)DataContext).CloseSessionCommand}"
+                                    CommandParameter="{Binding}"
+                                    Background="Transparent"/>
+                          </StackPanel>
+                          <!-- G-03: comment line in tab -->
+                          <TextBlock Text="{Binding Comment}" FontSize="10"
+                                     IsVisible="{Binding Comment, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                                     Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"/>
+                        </StackPanel>
+                        <Button.ContextMenu>
+                          <ContextMenu>
+                            <MenuItem Header="Titel / Kommentar bearbeiten"
+                                      Command="{Binding StartEditMetaCommand}"/>
+                          </ContextMenu>
+                        </Button.ContextMenu>
+                      </Button>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+              </ScrollViewer>
+            </Border>
 
             <!-- Aktive Chat-View -->
             <views:ChatSessionView Grid.Row="1" DataContext="{Binding ActiveSession}"/>

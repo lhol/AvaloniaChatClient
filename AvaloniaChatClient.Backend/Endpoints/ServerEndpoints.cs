@@ -1,3 +1,4 @@
+using System.Text.Json;
 using AvaloniaChatClient.Backend.Models;
 using AvaloniaChatClient.Backend.Services;
 
@@ -54,6 +55,38 @@ public static class ServerEndpoints
             {
                 sw.Stop();
                 return Results.Ok(new TestConnectionResponse(false, sw.ElapsedMilliseconds, ex.Message));
+            }
+        });
+
+        // G-08: list models available on a server
+        group.MapGet("/{id:guid}/models", async (Guid id, ServerProfileService svc, HttpClient http) =>
+        {
+            var profile = await svc.GetByIdAsync(id);
+            if (profile is null) return Results.NotFound();
+
+            var baseUrl = $"{profile.Url}:{profile.Port}";
+            try
+            {
+                using var request = new HttpRequestMessage(HttpMethod.Get, $"{baseUrl}/v1/models");
+                if (!string.IsNullOrEmpty(profile.Token))
+                    request.Headers.Authorization = new("Bearer", profile.Token);
+
+                var response = await http.SendAsync(request);
+                if (!response.IsSuccessStatusCode) return Results.Ok(Array.Empty<string>());
+
+                var json = await response.Content.ReadAsStringAsync();
+                using var doc = JsonDocument.Parse(json);
+                var models = new List<string>();
+                if (doc.RootElement.TryGetProperty("data", out var data))
+                    foreach (var item in data.EnumerateArray())
+                        if (item.TryGetProperty("id", out var idProp))
+                            models.Add(idProp.GetString() ?? string.Empty);
+
+                return Results.Ok(models);
+            }
+            catch
+            {
+                return Results.Ok(Array.Empty<string>());
             }
         });
 

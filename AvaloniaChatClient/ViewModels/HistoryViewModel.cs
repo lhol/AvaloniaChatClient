@@ -1,6 +1,8 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Platform.Storage;
@@ -11,18 +13,74 @@ using AvaloniaChatClient.Services;
 
 namespace AvaloniaChatClient.ViewModels;
 
+// G-04: wraps SessionSummary for inline editing in HistoryView
+public partial class SessionSummaryViewModel : ObservableObject
+{
+    private readonly BackendApiClient _api;
+    private readonly HistoryViewModel _parent;
+
+    public SessionSummary Summary { get; }
+
+    [ObservableProperty] private string _title;
+    [ObservableProperty] private string? _comment;
+    [ObservableProperty] private bool _isEditing;
+    [ObservableProperty] private string _editTitle = string.Empty;
+    [ObservableProperty] private string _editComment = string.Empty;
+
+    public string TooltipText =>
+        string.IsNullOrWhiteSpace(Comment)
+            ? $"ID: {Summary.Id}"
+            : $"ID: {Summary.Id}\n{Comment}";
+
+    partial void OnCommentChanged(string? value) => OnPropertyChanged(nameof(TooltipText));
+
+    public SessionSummaryViewModel(SessionSummary summary, BackendApiClient api, HistoryViewModel parent)
+    {
+        Summary = summary;
+        _api = api;
+        _parent = parent;
+        _title = summary.Title;
+        _comment = summary.Comment;
+    }
+
+    [RelayCommand]
+    private void StartEdit()
+    {
+        EditTitle = Title;
+        EditComment = Comment ?? string.Empty;
+        IsEditing = true;
+    }
+
+    [RelayCommand]
+    private async Task SaveEditAsync()
+    {
+        try
+        {
+            await _api.UpdateSessionMetaAsync(Summary.Id, title: EditTitle, comment: EditComment);
+            Title = EditTitle;
+            Comment = string.IsNullOrWhiteSpace(EditComment) ? null : EditComment;
+        }
+        catch (Exception ex)
+        {
+            AppErrorService.Instance.Report("SessionSummaryViewModel.SaveEdit", ex);
+        }
+        finally { IsEditing = false; }
+    }
+
+    [RelayCommand]
+    private void CancelEdit() => IsEditing = false;
+}
+
 public partial class HistoryViewModel : ViewModelBase
 {
     private readonly BackendApiClient _api;
     public event Action<ChatSessionViewModel>? OpenSessionRequested;
 
-    // F-02: TopLevel needed for SaveFilePicker – set from code-behind
     public TopLevel? TopLevel { get; set; }
 
-    // F-01: set by MainViewModel so HistoryView can bind to it
     public System.Collections.ObjectModel.ObservableCollection<Guid> OpenSessionIds { get; set; } = [];
 
-    [ObservableProperty] private ObservableCollection<SessionSummary> _sessions = [];
+    [ObservableProperty] private ObservableCollection<SessionSummaryViewModel> _sessions = [];
     [ObservableProperty] private ObservableCollection<SkillSummary> _skills = [];
     [ObservableProperty] private bool _isLoading;
     [ObservableProperty] private string _statusText = string.Empty;
@@ -39,7 +97,8 @@ public partial class HistoryViewModel : ViewModelBase
         try
         {
             var sessions = await _api.GetSessionsAsync();
-            Sessions = new ObservableCollection<SessionSummary>(sessions ?? []);
+            Sessions = new ObservableCollection<SessionSummaryViewModel>(
+                (sessions ?? []).Select(s => new SessionSummaryViewModel(s, _api, this)));
             var skills = await _api.GetSkillsAsync();
             Skills = new ObservableCollection<SkillSummary>(skills ?? []);
         }
@@ -51,15 +110,15 @@ public partial class HistoryViewModel : ViewModelBase
     }
 
     [RelayCommand]
-    private async Task OpenSessionAsync(SessionSummary summary)
+    private async Task OpenSessionAsync(SessionSummaryViewModel vm)
     {
         try
         {
-            var session = await _api.GetSessionAsync(summary.Id);
+            var session = await _api.GetSessionAsync(vm.Summary.Id);
             if (session is null) return;
-            var vm = new ChatSessionViewModel(_api, summary.Id, summary.Title);
-            await vm.LoadHistoryAsync();
-            OpenSessionRequested?.Invoke(vm);
+            var sessionVm = new ChatSessionViewModel(_api, vm.Summary.Id, vm.Title, vm.Comment);
+            await sessionVm.LoadHistoryAsync();
+            OpenSessionRequested?.Invoke(sessionVm);
         }
         catch (Exception ex)
         {
@@ -68,14 +127,14 @@ public partial class HistoryViewModel : ViewModelBase
     }
 
     [RelayCommand]
-    private async Task DeleteSessionAsync(SessionSummary summary)
+    private async Task DeleteSessionAsync(SessionSummaryViewModel vm)
     {
         try
         {
-            if (await _api.DeleteSessionAsync(summary.Id))
+            if (await _api.DeleteSessionAsync(vm.Summary.Id))
             {
-                Sessions.Remove(summary);
-                StatusText = $"Session '{summary.Title}' gelöscht.";
+                Sessions.Remove(vm);
+                StatusText = $"Session '{vm.Title}' gelöscht.";
             }
         }
         catch (Exception ex)
@@ -85,11 +144,11 @@ public partial class HistoryViewModel : ViewModelBase
     }
 
     [RelayCommand]
-    private async Task ExportSkillAsync(SessionSummary summary)
+    private async Task ExportSkillAsync(SessionSummaryViewModel vm)
     {
         try
         {
-            var result = await _api.ExportSessionAsSkillAsync(summary.Id);
+            var result = await _api.ExportSessionAsSkillAsync(vm.Summary.Id);
             if (result is not null)
             {
                 StatusText = $"Skill '{result.Title}' exportiert.";
@@ -120,16 +179,15 @@ public partial class HistoryViewModel : ViewModelBase
         }
     }
 
-    // F-02: Download as JSON
     [RelayCommand]
-    private async Task DownloadJsonAsync(SessionSummary summary)
+    private async Task DownloadJsonAsync(SessionSummaryViewModel vm)
     {
         try
         {
-            var session = await _api.GetSessionAsync(summary.Id);
+            var session = await _api.GetSessionAsync(vm.Summary.Id);
             if (session is null) return;
 
-            var path = await PickSavePathAsync($"{Sanitize(summary.Title)}_{summary.CreatedAt:yyyyMMdd}.json", "JSON", "json");
+            var path = await PickSavePathAsync($"{Sanitize(vm.Title)}_{vm.Summary.CreatedAt:yyyyMMdd}.json", "JSON", "json");
             if (path is null) return;
 
             await ChatExporter.ExportToJsonAsync(session, path);
@@ -141,16 +199,15 @@ public partial class HistoryViewModel : ViewModelBase
         }
     }
 
-    // F-02: Download as Markdown
     [RelayCommand]
-    private async Task DownloadMarkdownAsync(SessionSummary summary)
+    private async Task DownloadMarkdownAsync(SessionSummaryViewModel vm)
     {
         try
         {
-            var session = await _api.GetSessionAsync(summary.Id);
+            var session = await _api.GetSessionAsync(vm.Summary.Id);
             if (session is null) return;
 
-            var path = await PickSavePathAsync($"{Sanitize(summary.Title)}_{summary.CreatedAt:yyyyMMdd}.md", "Markdown", "md");
+            var path = await PickSavePathAsync($"{Sanitize(vm.Title)}_{vm.Summary.CreatedAt:yyyyMMdd}.md", "Markdown", "md");
             if (path is null) return;
 
             await ChatExporter.ExportToMarkdownAsync(session, path);

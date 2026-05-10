@@ -79,7 +79,7 @@ public partial class MainViewModel : ViewModelBase
             var servers = await _api.GetServersAsync();
             AvailableServers = new ObservableCollection<ServerProfile>(servers ?? []);
             NewSessionServer = AvailableServers.FirstOrDefault();
-            NewSessionModel = "llama3";
+            NewSessionModel = NewSessionServer?.DefaultModel ?? "llama3";  // G-10 default model
             NewSessionTitle = string.Empty;
             IsNewSessionDialogOpen = true;
         }
@@ -102,17 +102,23 @@ public partial class MainViewModel : ViewModelBase
                 string.IsNullOrWhiteSpace(NewSessionTitle) ? null : NewSessionTitle);
 
             if (session is null) return;
-            var vm = new ChatSessionViewModel(_api, session.Id, session.Title);
+            var vm = new ChatSessionViewModel(_api, session.Id, session.Title, session.Comment);
+            // G-07: set current server/model on the new VM
+            vm.AvailableServers = new System.Collections.ObjectModel.ObservableCollection<ServerProfile>(AvailableServers);
+            vm.SelectedServer = AvailableServers.FirstOrDefault(s => s.Id == NewSessionServer.Id);
+            vm.SelectedModel = NewSessionModel;
+
+            foreach (var s in Sessions) s.IsActive = false;   // G-02
+            vm.IsActive = true;
             Sessions.Add(vm);
-            OpenSessionIds.Add(vm.SessionId);  // F-01
+            OpenSessionIds.Add(vm.SessionId);
             ActiveSession = vm;
             SelectedTabIndex = 1;
 
-            // F-05: insert at top of history list immediately
             var summary = new SessionSummary(
-                session.Id, session.Title, session.ServerId, session.ModelId,
+                session.Id, session.Title, session.Comment, session.ServerId, session.ModelId,
                 session.CreatedAt, session.UpdatedAt, 0);
-            History.Sessions.Insert(0, summary);
+            History.Sessions.Insert(0, new SessionSummaryViewModel(summary, _api, History));
         }
         catch (Exception ex)
         {
@@ -124,7 +130,12 @@ public partial class MainViewModel : ViewModelBase
     private void CancelNewSession() => IsNewSessionDialogOpen = false;
 
     [RelayCommand]
-    private void ActivateSession(ChatSessionViewModel vm) => ActiveSession = vm;
+    private void ActivateSession(ChatSessionViewModel vm)
+    {
+        foreach (var s in Sessions) s.IsActive = false;   // G-02
+        vm.IsActive = true;
+        ActiveSession = vm;
+    }
 
     [RelayCommand]
     private void CloseSession(ChatSessionViewModel vm)
@@ -136,8 +147,10 @@ public partial class MainViewModel : ViewModelBase
 
     private void OpenExistingSession(ChatSessionViewModel vm)
     {
+        foreach (var s in Sessions) s.IsActive = false;   // G-02
+        vm.IsActive = true;
         Sessions.Add(vm);
-        OpenSessionIds.Add(vm.SessionId);  // F-01
+        OpenSessionIds.Add(vm.SessionId);
         ActiveSession = vm;
         SelectedTabIndex = 1;
     }

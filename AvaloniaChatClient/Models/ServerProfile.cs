@@ -10,6 +10,7 @@ public record ServerProfile(
     string Url,
     int Port,
     string? Token,
-    LlmProtocol Protocol);
+    LlmProtocol Protocol,
+    string DefaultModel = "default");
 
 public record TestConnectionResponse(bool Success, long LatencyMs, string? Error);

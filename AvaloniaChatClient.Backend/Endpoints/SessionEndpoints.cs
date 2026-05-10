@@ -29,6 +29,12 @@ public static class SessionEndpoints
                 ? Results.NoContent()
                 : Results.NotFound());
 
+        // G-04: update title, comment, server, model
+        group.MapPatch("/{id:guid}/meta", async (Guid id, UpdateSessionMetaRequest request, SessionService svc) =>
+            await svc.UpdateMetaAsync(id, request) is { } updated
+                ? Results.Ok(updated)
+                : Results.NotFound());
+
         group.MapPost("/{id:guid}/export", async (Guid id, SessionService svc, SkillService skillSvc) =>
         {
             var session = await svc.GetByIdAsync(id);

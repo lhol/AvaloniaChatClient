@@ -16,6 +16,7 @@ public record ServerProfile
     public int Port { get; init; } = 11434;
     public string? Token { get; init; }
     public LlmProtocol Protocol { get; init; } = LlmProtocol.OpenAI;
+    public string DefaultModel { get; init; } = "default";
 }
 
 public record CreateServerProfileRequest(
@@ -23,14 +24,16 @@ public record CreateServerProfileRequest(
     string Url,
     int Port,
     string? Token,
-    LlmProtocol Protocol);
+    LlmProtocol Protocol,
+    string? DefaultModel = null);
 
 public record UpdateServerProfileRequest(
     string Name,
     string Url,
     int Port,
     string? Token,
-    LlmProtocol Protocol);
+    LlmProtocol Protocol,
+    string? DefaultModel = null);
 
 public record TestConnectionResponse(
     bool Success,

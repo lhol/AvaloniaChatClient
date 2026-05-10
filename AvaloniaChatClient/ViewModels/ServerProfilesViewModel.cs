@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -20,6 +21,9 @@ public partial class ServerProfilesViewModel : ViewModelBase
     [ObservableProperty] private int _editPort = 11434;
     [ObservableProperty] private string _editToken = string.Empty;
     [ObservableProperty] private LlmProtocol _editProtocol = LlmProtocol.OpenAI;
+    [ObservableProperty] private string _editDefaultModel = "default";  // G-10
+    [ObservableProperty] private ObservableCollection<string> _editDefaultModelOptions = [];  // G-10
+    [ObservableProperty] private bool _isLoadingModels;  // G-10
     [ObservableProperty] private string _testStatus = string.Empty;
     [ObservableProperty] private bool _isTesting;
     [ObservableProperty] private bool _isLoading;
@@ -52,6 +56,8 @@ public partial class ServerProfilesViewModel : ViewModelBase
         EditPort = 11434;
         EditToken = string.Empty;
         EditProtocol = LlmProtocol.OpenAI;
+        EditDefaultModel = "default";
+        EditDefaultModelOptions = [];
         TestStatus = string.Empty;
         IsEditing = true;
     }
@@ -65,22 +71,53 @@ public partial class ServerProfilesViewModel : ViewModelBase
         EditPort = profile.Port;
         EditToken = profile.Token ?? string.Empty;
         EditProtocol = profile.Protocol;
+        EditDefaultModel = profile.DefaultModel;
+        EditDefaultModelOptions = [profile.DefaultModel];
         TestStatus = string.Empty;
         IsEditing = true;
+        _ = LoadDefaultModelsAsync();
+    }
+
+    // G-08/G-10: load models for the server being edited
+    [RelayCommand]
+    private async Task LoadDefaultModelsAsync()
+    {
+        if (SelectedProfile is null && string.IsNullOrWhiteSpace(EditUrl)) return;
+        IsLoadingModels = true;
+        try
+        {
+            List<string> models = [];
+            if (SelectedProfile is not null)
+                models = await _api.GetModelsAsync(SelectedProfile.Id);
+
+            if (models.Count == 0)
+                models = ["default"];
+
+            EditDefaultModelOptions = new ObservableCollection<string>(models);
+            if (!models.Contains(EditDefaultModel))
+                EditDefaultModel = models[0];
+        }
+        catch
+        {
+            EditDefaultModelOptions = ["default"];
+            EditDefaultModel = "default";
+        }
+        finally { IsLoadingModels = false; }
     }
 
     [RelayCommand]
     private async Task SaveAsync()
     {
         var token = string.IsNullOrWhiteSpace(EditToken) ? null : EditToken;
+        var defaultModel = string.IsNullOrWhiteSpace(EditDefaultModel) ? "default" : EditDefaultModel;
         if (SelectedProfile is null)
         {
-            var created = await _api.CreateServerAsync(EditName, EditUrl, EditPort, token, EditProtocol);
+            var created = await _api.CreateServerAsync(EditName, EditUrl, EditPort, token, EditProtocol, defaultModel);
             if (created is not null) Profiles.Add(created);
         }
         else
         {
-            var updated = await _api.UpdateServerAsync(SelectedProfile.Id, EditName, EditUrl, EditPort, token, EditProtocol);
+            var updated = await _api.UpdateServerAsync(SelectedProfile.Id, EditName, EditUrl, EditPort, token, EditProtocol, defaultModel);
             if (updated is not null)
             {
                 var idx = Profiles.IndexOf(SelectedProfile);
