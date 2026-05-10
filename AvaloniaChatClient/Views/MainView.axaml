@@ -1,16 +1,134 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="using:AvaloniaChatClient.ViewModels"
-             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             xmlns:views="using:AvaloniaChatClient.Views"
              x:Class="AvaloniaChatClient.Views.MainView"
              x:DataType="vm:MainViewModel">
-  <Design.DataContext>
-    <!-- This only sets the DataContext for the previewer in an IDE,
-         to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
-    <vm:MainViewModel />
-  </Design.DataContext>
 
-  <TextBlock Text="{Binding Greeting}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+  <Grid RowDefinitions="Auto,*">
+
+    <!-- Topbar -->
+    <Border Grid.Row="0" Padding="12,8" BorderThickness="0,0,0,1"
+            BorderBrush="{DynamicResource SystemControlBackgroundBaseLowBrush}">
+      <Grid ColumnDefinitions="Auto,*,Auto,Auto">
+        <TextBlock Grid.Column="0" Text="AvaloniaChatClient" FontSize="16" FontWeight="Bold"
+                   VerticalAlignment="Center"/>
+        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6"
+                    HorizontalAlignment="Center" VerticalAlignment="Center">
+          <Ellipse Width="8" Height="8" Fill="Red" IsVisible="{Binding !BackendReachable}"/>
+          <Ellipse Width="8" Height="8" Fill="LimeGreen" IsVisible="{Binding BackendReachable}"/>
+          <TextBlock Text="{Binding BackendStatus}" FontSize="12"
+                     Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"/>
+        </StackPanel>
+        <Button Grid.Column="2" Content="＋ Neue Session"
+                Command="{Binding OpenNewSessionDialogCommand}"
+                Classes="accent" Margin="0,0,8,0"/>
+        <Button Grid.Column="3"
+                Command="{Binding OpenErrorLogCommand}"
+                ToolTip.Tip="Fehlerprotokoll öffnen">
+          <StackPanel Orientation="Horizontal" Spacing="4">
+            <TextBlock Text="⚠" VerticalAlignment="Center"/>
+            <TextBlock Text="{Binding ErrorCount}" VerticalAlignment="Center"/>
+          </StackPanel>
+        </Button>
+      </Grid>
+    </Border>
+
+    <!-- Tab-Layout -->
+    <TabControl Grid.Row="1" SelectedIndex="{Binding SelectedTabIndex}">
+
+      <!-- Tab 1: Server-Profile -->
+      <TabItem Header="Server">
+        <views:ServerProfilesView DataContext="{Binding ServerProfiles}"/>
+      </TabItem>
+
+      <!-- Tab 2: Chat-Sessions -->
+      <TabItem Header="Chat">
+        <Grid>
+          <!-- Kein Session-Hinweis -->
+          <TextBlock Text="Keine aktive Session. Klicke '＋ Neue Session'."
+                     HorizontalAlignment="Center" VerticalAlignment="Center"
+                     Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                     IsVisible="{Binding ActiveSession, Converter={x:Static ObjectConverters.IsNull}}"/>
+
+          <!-- Session-Bereich mit Tab-Leiste -->
+          <Grid RowDefinitions="Auto,*"
+                IsVisible="{Binding ActiveSession, Converter={x:Static ObjectConverters.IsNotNull}}">
+            <!-- Session-Tabs -->
+            <ScrollViewer Grid.Row="0" HorizontalScrollBarVisibility="Auto"
+                          VerticalScrollBarVisibility="Disabled">
+              <ItemsControl ItemsSource="{Binding Sessions}">
+                <ItemsControl.ItemsPanel>
+                  <ItemsPanelTemplate>
+                    <StackPanel Orientation="Horizontal"/>
+                  </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate DataType="vm:ChatSessionViewModel">
+                    <!-- F-07: tooltip shows session GUID -->
+                    <Button Margin="2,4,0,0" Padding="10,4" CornerRadius="6,6,0,0"
+                            ToolTip.Tip="{Binding SessionId, StringFormat='ID: {0}'}"
+                            Command="{Binding $parent[ItemsControl].((vm:MainViewModel)DataContext).ActivateSessionCommand}"
+                            CommandParameter="{Binding}">
+                      <StackPanel Orientation="Horizontal" Spacing="6">
+                        <TextBlock Text="{Binding Title}" VerticalAlignment="Center"/>
+                        <Button Content="✕" Padding="2,0"
+                                Command="{Binding $parent[ItemsControl].((vm:MainViewModel)DataContext).CloseSessionCommand}"
+                                CommandParameter="{Binding}"
+                                Background="Transparent"/>
+                      </StackPanel>
+                    </Button>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </ScrollViewer>
+
+            <!-- Aktive Chat-View -->
+            <views:ChatSessionView Grid.Row="1" DataContext="{Binding ActiveSession}"/>
+          </Grid>
+        </Grid>
+      </TabItem>
+
+      <!-- Tab 3: Historien & Skills -->
+      <TabItem Header="Historien">
+        <views:HistoryView DataContext="{Binding History}"/>
+      </TabItem>
+
+    </TabControl>
+
+    <!-- Dialog: Neue Session -->
+    <Panel IsVisible="{Binding IsNewSessionDialogOpen}" Grid.Row="0" Grid.RowSpan="2"
+           Background="#80000000">
+      <Border Padding="24" CornerRadius="10" MaxWidth="440"
+              Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
+              HorizontalAlignment="Center" VerticalAlignment="Center">
+        <StackPanel Spacing="12">
+          <TextBlock Text="Neue Chat-Session" FontSize="16" FontWeight="SemiBold"/>
+
+          <TextBlock Text="Server:" FontSize="13"/>
+          <ComboBox ItemsSource="{Binding AvailableServers}"
+                    SelectedItem="{Binding NewSessionServer}"
+                    HorizontalAlignment="Stretch">
+            <ComboBox.ItemTemplate>
+              <DataTemplate>
+                <TextBlock Text="{Binding Name}"/>
+              </DataTemplate>
+            </ComboBox.ItemTemplate>
+          </ComboBox>
+
+          <TextBlock Text="Modell:" FontSize="13"/>
+          <TextBox Text="{Binding NewSessionModel}" PlaceholderText="z.B. llama3, gpt-4o"/>
+
+          <TextBlock Text="Titel (optional):" FontSize="13"/>
+          <TextBox Text="{Binding NewSessionTitle}" PlaceholderText="Neue Session"/>
+
+          <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
+            <Button Content="Abbrechen" Command="{Binding CancelNewSessionCommand}"/>
+            <Button Content="Erstellen" Command="{Binding CreateSessionCommand}" Classes="accent"/>
+          </StackPanel>
+        </StackPanel>
+      </Border>
+    </Panel>
+
+  </Grid>
 </UserControl>

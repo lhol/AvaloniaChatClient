@@ -1,0 +1,6 @@
+@AvaloniaChatClient.Backend_HostAddress = http://localhost:5282
+
+GET {{AvaloniaChatClient.Backend_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

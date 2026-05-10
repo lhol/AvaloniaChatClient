@@ -1,0 +1,101 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:AvaloniaChatClient.ViewModels"
+             xmlns:models="using:AvaloniaChatClient.Models"
+             xmlns:conv="using:AvaloniaChatClient.Converters"
+             x:Class="AvaloniaChatClient.Views.HistoryView"
+             x:DataType="vm:HistoryViewModel">
+
+  <Grid RowDefinitions="Auto,*,Auto,*,Auto">
+
+    <!-- Sessions -->
+    <TextBlock Grid.Row="0" Text="Chat-Historien" FontSize="16" FontWeight="SemiBold" Margin="12,12,12,4"/>
+
+    <ScrollViewer Grid.Row="1">
+      <ItemsControl ItemsSource="{Binding Sessions}" Margin="12,0" x:Name="SessionsList">
+        <ItemsControl.ItemTemplate>
+          <DataTemplate DataType="models:SessionSummary">
+            <!-- F-08: tooltip with GUID -->
+            <Border Margin="0,3" Padding="10" CornerRadius="6"
+                    Background="{DynamicResource SystemControlBackgroundAltHighBrush}"
+                    ToolTip.Tip="{Binding Id, StringFormat='ID: {0}'}">
+              <Grid ColumnDefinitions="*,Auto">
+                <StackPanel Grid.Column="0" Spacing="2">
+                  <TextBlock Text="{Binding Title}" FontWeight="SemiBold"/>
+                  <TextBlock FontSize="11" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}">
+                    <Run Text="{Binding ModelId}"/>
+                    <Run Text=" · "/>
+                    <Run Text="{Binding MessageCount}"/>
+                    <Run Text=" Nachrichten · "/>
+                    <Run Text="{Binding UpdatedAt, StringFormat='{}{0:dd.MM.yyyy HH:mm}'}"/>
+                  </TextBlock>
+                </StackPanel>
+                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
+                  <!-- F-01: disable Öffnen when already open -->
+                  <Button Content="Öffnen"
+                          Command="{Binding $parent[ItemsControl].((vm:HistoryViewModel)DataContext).OpenSessionCommand}"
+                          CommandParameter="{Binding}">
+                    <Button.IsEnabled>
+                      <MultiBinding Converter="{x:Static conv:NotInCollectionConverter.Instance}">
+                        <Binding Path="Id"/>
+                        <Binding Path="$parent[UserControl].((vm:HistoryViewModel)DataContext).OpenSessionIds"/>
+                      </MultiBinding>
+                    </Button.IsEnabled>
+                  </Button>
+                  <!-- F-02: Download buttons -->
+                  <Button Content="⬇ JSON"
+                          Command="{Binding $parent[ItemsControl].((vm:HistoryViewModel)DataContext).DownloadJsonCommand}"
+                          CommandParameter="{Binding}"
+                          ToolTip.Tip="Als JSON herunterladen"/>
+                  <Button Content="⬇ MD"
+                          Command="{Binding $parent[ItemsControl].((vm:HistoryViewModel)DataContext).DownloadMarkdownCommand}"
+                          CommandParameter="{Binding}"
+                          ToolTip.Tip="Als Markdown herunterladen"/>
+                  <Button Content="→ Skill"
+                          Command="{Binding $parent[ItemsControl].((vm:HistoryViewModel)DataContext).ExportSkillCommand}"
+                          CommandParameter="{Binding}"
+                          ToolTip.Tip="Als Skill exportieren"/>
+                  <Button Content="🗑"
+                          Command="{Binding $parent[ItemsControl].((vm:HistoryViewModel)DataContext).DeleteSessionCommand}"
+                          CommandParameter="{Binding}"
+                          Classes="danger"/>
+                </StackPanel>
+              </Grid>
+            </Border>
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+    </ScrollViewer>
+
+    <!-- Skills -->
+    <TextBlock Grid.Row="2" Text="Skills" FontSize="16" FontWeight="SemiBold" Margin="12,12,12,4"/>
+
+    <ScrollViewer Grid.Row="3">
+      <ItemsControl ItemsSource="{Binding Skills}" Margin="12,0">
+        <ItemsControl.ItemTemplate>
+          <DataTemplate DataType="models:SkillSummary">
+            <Border Margin="0,3" Padding="10" CornerRadius="6"
+                    Background="{DynamicResource SystemControlBackgroundAltHighBrush}">
+              <Grid ColumnDefinitions="*,Auto">
+                <StackPanel Grid.Column="0" Spacing="2">
+                  <TextBlock Text="{Binding Title}" FontWeight="SemiBold"/>
+                  <TextBlock FontSize="11" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                             Text="{Binding CreatedAt, StringFormat='Erstellt: {0:dd.MM.yyyy HH:mm}'}"/>
+                </StackPanel>
+                <Button Grid.Column="1" Content="🗑"
+                        Command="{Binding $parent[ItemsControl].((vm:HistoryViewModel)DataContext).DeleteSkillCommand}"
+                        CommandParameter="{Binding}"
+                        Classes="danger" VerticalAlignment="Center"/>
+              </Grid>
+            </Border>
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+    </ScrollViewer>
+
+    <!-- Statuszeile -->
+    <TextBlock Grid.Row="4" Text="{Binding StatusText}" Margin="12,4" FontSize="12"
+               IsVisible="{Binding StatusText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+
+  </Grid>
+</UserControl>

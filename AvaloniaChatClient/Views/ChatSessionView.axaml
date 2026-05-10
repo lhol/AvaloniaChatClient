@@ -1,0 +1,78 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:AvaloniaChatClient.ViewModels"
+             x:Class="AvaloniaChatClient.Views.ChatSessionView"
+             x:DataType="vm:ChatSessionViewModel">
+
+  <Grid RowDefinitions="*,Auto,Auto">
+
+    <!-- Nachrichtenliste -->
+    <ScrollViewer Grid.Row="0" x:Name="MessageScroller">
+      <ItemsControl ItemsSource="{Binding Messages}" Margin="12,8">
+        <ItemsControl.ItemTemplate>
+          <DataTemplate DataType="vm:ChatMessageViewModel">
+            <Grid Margin="0,4" ColumnDefinitions="*,Auto">
+
+              <!-- Benutzer-Nachricht (rechts) -->
+              <Border Grid.Column="1"
+                      IsVisible="{Binding IsUser}"
+                      Padding="12,8" CornerRadius="12,12,2,12"
+                      Background="{DynamicResource SystemAccentColor}"
+                      MaxWidth="480" Margin="48,0,0,0">
+                <TextBlock Text="{Binding Content}" TextWrapping="Wrap" Foreground="White"/>
+              </Border>
+
+              <!-- Assistenten-Nachricht (links) -->
+              <StackPanel Grid.Column="0"
+                          IsVisible="{Binding IsAssistant}"
+                          MaxWidth="560" Margin="0,0,48,0" Spacing="2">
+                <Border Padding="12,8" CornerRadius="12,12,12,2"
+                        Background="{DynamicResource SystemControlBackgroundAltHighBrush}">
+                  <TextBlock Text="{Binding Content}" TextWrapping="Wrap"/>
+                </Border>
+                <!-- F-04: metadata row, visibility controlled by parent session VM -->
+                <TextBlock FontSize="11" Margin="4,0,0,0"
+                           Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                           Text="{Binding MetadataText}"
+                           IsVisible="{Binding $parent[ItemsControl].((vm:ChatSessionViewModel)DataContext).ShowMetadata}"/>
+              </StackPanel>
+
+            </Grid>
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+    </ScrollViewer>
+
+    <!-- Statuszeile -->
+    <TextBlock Grid.Row="1" Text="{Binding StatusText}" Margin="14,4" FontSize="12"
+               Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+               IsVisible="{Binding StatusText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+
+    <!-- Eingabebereich -->
+    <Border Grid.Row="2" BorderThickness="0,1,0,0"
+            BorderBrush="{DynamicResource SystemControlBackgroundBaseLowBrush}"
+            Padding="12,8">
+      <Grid ColumnDefinitions="Auto,*,Auto,Auto" RowDefinitions="Auto">
+        <!-- F-04: Toggle metadata -->
+        <Button Grid.Column="0" Content="⏱" Margin="0,0,8,0"
+                Command="{Binding ToggleMetadataCommand}"
+                ToolTip.Tip="Metadaten ein-/ausblenden"/>
+        <TextBox Grid.Column="1"
+                 Text="{Binding InputText}"
+                 PlaceholderText="Nachricht eingeben…"
+                 AcceptsReturn="False"
+                 MaxHeight="120"
+                 TextWrapping="Wrap"
+                 x:Name="InputBox"/>
+        <Button Grid.Column="2" Content="✕" Margin="8,0,0,0"
+                Command="{Binding StopStreamingCommand}"
+                IsVisible="{Binding IsStreaming}"
+                ToolTip.Tip="Streaming stoppen"/>
+        <Button Grid.Column="3" Content="Senden" Margin="8,0,0,0" Classes="accent"
+                Command="{Binding SendCommand}"
+                IsVisible="{Binding !IsStreaming}"/>
+      </Grid>
+    </Border>
+
+  </Grid>
+</UserControl>
