@@ -13,6 +13,12 @@ public partial class HistoryView : UserControl
     protected override void OnAttachedToVisualTree(Avalonia.VisualTreeAttachmentEventArgs e)
     {
         base.OnAttachedToVisualTree(e);
+        SetTopLevel();
+        DataContextChanged += (_, _) => SetTopLevel();
+    }
+
+    private void SetTopLevel()
+    {
         if (DataContext is HistoryViewModel vm)
             vm.TopLevel = TopLevel.GetTopLevel(this);
     }

@@ -21,6 +21,7 @@ public partial class ChatMessageViewModel : ObservableObject
     [ObservableProperty] private int? _outputTokens;
     [ObservableProperty] private string? _serverName;   // G-09
     [ObservableProperty] private string? _modelName;    // G-09
+    [ObservableProperty] private bool _showMetadata;    // driven by parent ShowMetadata
 
     public bool IsUser => Role == "user";
     public bool IsAssistant => Role == "assistant";
@@ -83,6 +84,7 @@ public partial class ChatSessionViewModel : ViewModelBase
     [ObservableProperty] private ObservableCollection<string> _availableModels = [];
     [ObservableProperty] private string? _selectedModel;
     [ObservableProperty] private bool _isLoadingModels;
+    [ObservableProperty] private bool _showServerChooser = false;  // new: toggle row visibility
 
     public event Action? ScrollToBottomRequested;
 
@@ -120,7 +122,8 @@ public partial class ChatSessionViewModel : ViewModelBase
                     InputTokens = msg.InputTokens,
                     OutputTokens = msg.OutputTokens,
                     ServerName = msg.ServerName,
-                    ModelName = msg.ModelName
+                    ModelName = msg.ModelName,
+                    ShowMetadata = ShowMetadata
                 });
         }
         catch (Exception ex)
@@ -232,7 +235,7 @@ public partial class ChatSessionViewModel : ViewModelBase
         StatusText = string.Empty;
 
         Messages.Add(new ChatMessageViewModel("user", text));
-        var assistantMsg = new ChatMessageViewModel("assistant", string.Empty);
+        var assistantMsg = new ChatMessageViewModel("assistant", string.Empty) { ShowMetadata = ShowMetadata };
         Messages.Add(assistantMsg);
         ScrollToBottomRequested?.Invoke();
 
@@ -299,10 +302,17 @@ public partial class ChatSessionViewModel : ViewModelBase
     private void StopStreaming() => _streamCts?.Cancel();
 
     [RelayCommand]
-    private void ToggleMetadata() => ShowMetadata = !ShowMetadata;
+    private void ToggleMetadata()
+    {
+        ShowMetadata = !ShowMetadata;
+        foreach (var m in Messages) m.ShowMetadata = ShowMetadata;
+    }
 
     [RelayCommand]
     private void ToggleMultiline() => MultilineInput = !MultilineInput;  // G-05
+
+    [RelayCommand]
+    private void ToggleServerChooser() => ShowServerChooser = !ShowServerChooser;
 
     partial void OnIsStreamingChanged(bool value) => SendCommand.NotifyCanExecuteChanged();
 }

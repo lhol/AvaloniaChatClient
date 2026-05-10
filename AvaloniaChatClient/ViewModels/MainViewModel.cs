@@ -103,9 +103,10 @@ public partial class MainViewModel : ViewModelBase
 
             if (session is null) return;
             var vm = new ChatSessionViewModel(_api, session.Id, session.Title, session.Comment);
-            // G-07: set current server/model on the new VM
-            vm.AvailableServers = new System.Collections.ObjectModel.ObservableCollection<ServerProfile>(AvailableServers);
-            vm.SelectedServer = AvailableServers.FirstOrDefault(s => s.Id == NewSessionServer.Id);
+            // G-07: set current server/model on the new VM — use full profile list
+            vm.AvailableServers = new System.Collections.ObjectModel.ObservableCollection<ServerProfile>(ServerProfiles.Profiles);
+            vm.SelectedServer = ServerProfiles.Profiles.FirstOrDefault(s => s.Id == NewSessionServer.Id)
+                             ?? AvailableServers.FirstOrDefault(s => s.Id == NewSessionServer.Id);
             vm.SelectedModel = NewSessionModel;
 
             foreach (var s in Sessions) s.IsActive = false;   // G-02
@@ -147,6 +148,10 @@ public partial class MainViewModel : ViewModelBase
 
     private void OpenExistingSession(ChatSessionViewModel vm)
     {
+        // Ensure the session has the full server list from the already-loaded profiles
+        if (vm.AvailableServers.Count == 0 && ServerProfiles.Profiles.Count > 0)
+            vm.AvailableServers = new System.Collections.ObjectModel.ObservableCollection<ServerProfile>(ServerProfiles.Profiles);
+
         foreach (var s in Sessions) s.IsActive = false;   // G-02
         vm.IsActive = true;
         Sessions.Add(vm);

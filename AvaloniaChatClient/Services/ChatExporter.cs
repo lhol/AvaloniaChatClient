@@ -29,6 +29,11 @@ public static class ChatExporter
         var sb = new StringBuilder();
         sb.AppendLine($"# {session.Title}");
         sb.AppendLine();
+        if (!string.IsNullOrWhiteSpace(session.Comment))
+        {
+            sb.AppendLine($"> {session.Comment}");
+            sb.AppendLine();
+        }
         sb.AppendLine($"**Erstellt:** {session.CreatedAt:yyyy-MM-dd HH:mm}  ");
         sb.AppendLine($"**Modell:** {session.ModelId}  ");
         sb.AppendLine();
@@ -47,6 +52,8 @@ public static class ChatExporter
             if (msg.Role == "assistant")
             {
                 var meta = new StringBuilder();
+                if (!string.IsNullOrEmpty(msg.ServerName)) meta.Append($" · Server: {msg.ServerName}");
+                if (!string.IsNullOrEmpty(msg.ModelName)) meta.Append($" | Modell: {msg.ModelName}");
                 if (msg.TtftMs.HasValue) meta.Append($" · TTFT: {msg.TtftMs} ms");
                 if (msg.TotalMs.HasValue) meta.Append($" | Gesamt: {msg.TotalMs} ms");
                 if (msg.OutputTokens.HasValue) meta.Append($" | Tokens: {msg.OutputTokens}");

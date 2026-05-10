@@ -118,6 +118,44 @@ public partial class HistoryViewModel : ViewModelBase
             if (session is null) return;
             var sessionVm = new ChatSessionViewModel(_api, vm.Summary.Id, vm.Title, vm.Comment);
             await sessionVm.LoadHistoryAsync();
+            await sessionVm.LoadServersAsync();
+
+            // Determine server/model: prefer session meta, then last assistant message metadata, then default/first
+            var servers = sessionVm.AvailableServers;
+            ServerProfile? server = servers.FirstOrDefault(s => s.Id == vm.Summary.ServerId);
+
+            if (server is null)
+            {
+                // Try to find server name from last assistant message metadata
+                var lastServerName = session.Messages
+                    .Where(m => m.Role == "assistant" && !string.IsNullOrEmpty(m.ServerName))
+                    .Select(m => m.ServerName)
+                    .LastOrDefault();
+                if (!string.IsNullOrEmpty(lastServerName))
+                    server = servers.FirstOrDefault(s => s.Name == lastServerName);
+            }
+
+            // Fallback: server starting with "default"/"Default", then first
+            if (server is null)
+                server = servers.FirstOrDefault(s => s.Name.StartsWith("default", StringComparison.OrdinalIgnoreCase))
+                      ?? servers.FirstOrDefault();
+
+            if (server is not null)
+            {
+                sessionVm.SelectedServer = server;  // triggers LoadModelsAsync via OnSelectedServerChanged
+
+                // Determine model: prefer session meta, then last message metadata
+                string? modelId = string.IsNullOrEmpty(vm.Summary.ModelId) ? null : vm.Summary.ModelId;
+                if (modelId is null)
+                    modelId = session.Messages
+                        .Where(m => m.Role == "assistant" && !string.IsNullOrEmpty(m.ModelName))
+                        .Select(m => m.ModelName)
+                        .LastOrDefault();
+
+                if (!string.IsNullOrEmpty(modelId))
+                    sessionVm.SelectedModel = modelId;
+            }
+
             OpenSessionRequested?.Invoke(sessionVm);
         }
         catch (Exception ex)

@@ -1,5 +1,6 @@
 using Avalonia.Controls;
 using Avalonia.Input;
+using Avalonia.Interactivity;
 using Avalonia.Threading;
 using AvaloniaChatClient.ViewModels;
 
@@ -21,8 +22,9 @@ public partial class ChatSessionView : UserControl
             var inputBox = this.FindControl<TextBox>("InputBox");
             if (inputBox is not null)
             {
-                inputBox.KeyDown -= OnInputKeyDown;
-                inputBox.KeyDown += OnInputKeyDown;
+                // Use tunnel routing so we intercept Enter BEFORE TextBox processes it
+                inputBox.RemoveHandler(KeyDownEvent, OnInputKeyDown);
+                inputBox.AddHandler(KeyDownEvent, OnInputKeyDown, RoutingStrategies.Tunnel);
             }
         }
     }
@@ -34,9 +36,13 @@ public partial class ChatSessionView : UserControl
         if (e.Key != Key.Enter) return;
 
         bool shiftHeld = e.KeyModifiers.HasFlag(KeyModifiers.Shift);
-        bool shouldSend = vm.MultilineInput ? shiftHeld : true;
+        bool shouldSend = vm.MultilineInput ? shiftHeld : !shiftHeld || true;
 
-        if (shouldSend && vm.SendCommand.CanExecute(null))
+        // In multiline mode: Shift+Enter sends; plain Enter inserts newline (don't intercept)
+        // In singleline mode: Enter (with or without Shift) sends
+        if (vm.MultilineInput && !shiftHeld) return;
+
+        if (vm.SendCommand.CanExecute(null))
         {
             vm.SendCommand.Execute(null);
             e.Handled = true;

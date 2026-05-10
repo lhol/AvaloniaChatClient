@@ -52,7 +52,7 @@
                 <TextBlock FontSize="11" Margin="4,0,0,0"
                            Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
                            Text="{Binding MetadataText}"
-                           IsVisible="{Binding $parent[ItemsControl].((vm:ChatSessionViewModel)DataContext).ShowMetadata}"/>
+                           IsVisible="{Binding ShowMetadata}"/>
               </StackPanel>
 
             </Grid>
@@ -68,6 +68,7 @@
 
     <!-- G-07: Server/Modell-Auswahl über dem Eingabefeld -->
     <Border Grid.Row="3" BorderThickness="0,1,0,0"
+            IsVisible="{Binding ShowServerChooser}"
             BorderBrush="{DynamicResource SystemControlBackgroundBaseLowBrush}"
             Padding="12,6,12,2">
       <Grid ColumnDefinitions="Auto,*,8,Auto,*,Auto">
@@ -97,27 +98,34 @@
     <Border Grid.Row="4" BorderThickness="0,1,0,0"
             BorderBrush="{DynamicResource SystemControlBackgroundBaseLowBrush}"
             Padding="12,8">
-      <Grid ColumnDefinitions="Auto,Auto,*,Auto,Auto" RowDefinitions="Auto">
+      <Grid ColumnDefinitions="Auto,Auto,Auto,*,Auto,Auto" RowDefinitions="Auto">
+        <!-- new: Toggle server/model chooser (leftmost) -->
+        <Button Grid.Column="0" Content="🖧" Margin="0,0,4,0"
+                Command="{Binding ToggleServerChooserCommand}"
+                Classes.active="{Binding ShowServerChooser}"
+                ToolTip.Tip="Server/Modell-Auswahl ein-/ausblenden"/>
         <!-- F-04: Toggle metadata -->
-        <Button Grid.Column="0" Content="⏱" Margin="0,0,4,0"
+        <Button Grid.Column="1" Content="⏱" Margin="0,0,4,0"
                 Command="{Binding ToggleMetadataCommand}"
+                Classes.active="{Binding ShowMetadata}"
                 ToolTip.Tip="Metadaten ein-/ausblenden"/>
         <!-- G-05: Toggle multiline -->
-        <Button Grid.Column="1" Content="↕" Margin="0,0,8,0"
+        <Button Grid.Column="2" Content="↕" Margin="0,0,8,0"
                 Command="{Binding ToggleMultilineCommand}"
+                Classes.active="{Binding MultilineInput}"
                 ToolTip.Tip="Mehrzeilige Eingabe ein-/ausschalten"/>
-        <TextBox Grid.Column="2"
+        <TextBox Grid.Column="3"
                  Text="{Binding InputText}"
                  PlaceholderText="Nachricht eingeben…"
                  AcceptsReturn="{Binding MultilineInput}"
                  MaxHeight="200"
                  TextWrapping="Wrap"
                  x:Name="InputBox"/>
-        <Button Grid.Column="3" Content="✕" Margin="8,0,0,0"
+        <Button Grid.Column="4" Content="✕" Margin="8,0,0,0"
                 Command="{Binding StopStreamingCommand}"
                 IsVisible="{Binding IsStreaming}"
                 ToolTip.Tip="Streaming stoppen"/>
-        <Button Grid.Column="4" Content="Senden" Margin="8,0,0,0" Classes="accent"
+        <Button Grid.Column="5" Content="Senden" Margin="8,0,0,0" Classes="accent"
                 Command="{Binding SendCommand}"
                 IsVisible="{Binding !IsStreaming}"/>
       </Grid>
