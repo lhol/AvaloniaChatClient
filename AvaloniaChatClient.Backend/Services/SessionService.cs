@@ -39,6 +39,7 @@ public class SessionService
             Id = Guid.NewGuid(),
             Title = request.Title ?? "Neue Session",
             Comment = request.Comment,
+            Topic = request.Topic,
             ServerId = request.ServerId,
             ModelId = request.ModelId,
             SkillIds = request.SkillIds ?? []
@@ -64,6 +65,7 @@ public class SessionService
         {
             Title = request.Title ?? session.Title,
             Comment = request.Comment != null ? (request.Comment == "" ? null : request.Comment) : session.Comment,
+            Topic = request.Topic != null ? (request.Topic == "" ? null : request.Topic) : session.Topic,
             ServerId = request.ServerId ?? session.ServerId,
             ModelId = request.ModelId ?? session.ModelId,
             UpdatedAt = DateTimeOffset.UtcNow
@@ -125,5 +127,5 @@ public class SessionService
     private string FilePath(Guid id) => Path.Combine(_sessionsDir, $"{id}.json");
 
     private static SessionSummary ToSummary(ChatSession s) =>
-        new(s.Id, s.Title, s.Comment, s.ServerId, s.ModelId, s.CreatedAt, s.UpdatedAt, s.Messages.Count);
+        new(s.Id, s.Title, s.Comment, s.Topic, s.ServerId, s.ModelId, s.CreatedAt, s.UpdatedAt, s.Messages.Count);
 }

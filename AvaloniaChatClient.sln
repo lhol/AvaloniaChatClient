@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 17
-VisualStudioVersion = 17.3.32811.315
+# Visual Studio Version 18
+VisualStudioVersion = 18.6.11806.211 stable
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AvaloniaChatClient", "AvaloniaChatClient\AvaloniaChatClient.csproj", "{EBFA8512-1EA5-4D8C-B4AC-AB5B48A6D568}"
 EndProject
@@ -15,12 +15,30 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AvaloniaChatClient.Android"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{3DA99C4E-89E3-4049-9C22-0A7EC60D83D8}"
 	ProjectSection(SolutionItems) = preProject
+		docs\Adapter-OpenAI.md = docs\Adapter-OpenAI.md
 		Directory.Packages.props = Directory.Packages.props
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AvaloniaChatClient.Backend", "AvaloniaChatClient.Backend\AvaloniaChatClient.Backend.csproj", "{D5D52302-91FC-440F-9F2D-A3524FD908B5}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AvaloniaChatClient.Adapters", "AvaloniaChatClient.Adapters\AvaloniaChatClient.Adapters.csproj", "{9982FC22-2D99-4DDD-BEA9-58AA29E76D92}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AvaloniaUI-DocumentationAndVerification", "AvaloniaUI-DocumentationAndVerification\AvaloniaUI-DocumentationAndVerification.csproj", "{1415A92C-66E7-4EBB-B9AF-BBCE81B9E927}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{60F7A3F4-D61F-4782-8D58-7ACF6E20B981}"
+	ProjectSection(SolutionItems) = preProject
+		docs\API.md = docs\API.md
+		docs\ARCHITECTURE.md = docs\ARCHITECTURE.md
+		docs\BUILD.md = docs\BUILD.md
+		docs\Featuresv0.2.md = docs\Featuresv0.2.md
+		featuresv0.3.md = featuresv0.3.md
+		docs\Featurev0.1.md = docs\Featurev0.1.md
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Methodology", "Methodology", "{47631050-ECED-4A6D-A298-CD5610083CFB}"
+	ProjectSection(SolutionItems) = preProject
+		Verification.md = Verification.md
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -116,6 +134,18 @@ Global
 		{9982FC22-2D99-4DDD-BEA9-58AA29E76D92}.Release|x64.Build.0 = Release|Any CPU
 		{9982FC22-2D99-4DDD-BEA9-58AA29E76D92}.Release|x86.ActiveCfg = Release|Any CPU
 		{9982FC22-2D99-4DDD-BEA9-58AA29E76D92}.Release|x86.Build.0 = Release|Any CPU
+		{1415A92C-66E7-4EBB-B9AF-BBCE81B9E927}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1415A92C-66E7-4EBB-B9AF-BBCE81B9E927}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1415A92C-66E7-4EBB-B9AF-BBCE81B9E927}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{1415A92C-66E7-4EBB-B9AF-BBCE81B9E927}.Debug|x64.Build.0 = Debug|Any CPU
+		{1415A92C-66E7-4EBB-B9AF-BBCE81B9E927}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{1415A92C-66E7-4EBB-B9AF-BBCE81B9E927}.Debug|x86.Build.0 = Debug|Any CPU
+		{1415A92C-66E7-4EBB-B9AF-BBCE81B9E927}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1415A92C-66E7-4EBB-B9AF-BBCE81B9E927}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1415A92C-66E7-4EBB-B9AF-BBCE81B9E927}.Release|x64.ActiveCfg = Release|Any CPU
+		{1415A92C-66E7-4EBB-B9AF-BBCE81B9E927}.Release|x64.Build.0 = Release|Any CPU
+		{1415A92C-66E7-4EBB-B9AF-BBCE81B9E927}.Release|x86.ActiveCfg = Release|Any CPU
+		{1415A92C-66E7-4EBB-B9AF-BBCE81B9E927}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

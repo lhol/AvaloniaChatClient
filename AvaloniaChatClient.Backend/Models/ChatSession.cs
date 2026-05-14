@@ -19,6 +19,7 @@ public record ChatSession
     public Guid Id { get; init; } = Guid.NewGuid();
     public string Title { get; init; } = "Neue Session";
     public string? Comment { get; init; }       // G-03
+    public string? Topic { get; init; }          // v0.3
     public Guid ServerId { get; init; }
     public string ModelId { get; init; } = string.Empty;
     public DateTimeOffset CreatedAt { get; init; } = DateTimeOffset.UtcNow;
@@ -31,6 +32,7 @@ public record SessionSummary(
     Guid Id,
     string Title,
     string? Comment,       // G-03
+    string? Topic,         // v0.3
     Guid ServerId,
     string ModelId,
     DateTimeOffset CreatedAt,
@@ -42,12 +44,14 @@ public record CreateSessionRequest(
     string ModelId,
     string? Title = null,
     string? Comment = null,   // G-03
+    string? Topic = null,     // v0.3
     List<Guid>? SkillIds = null);
 
 // G-04: PATCH /sessions/{id}/meta
 public record UpdateSessionMetaRequest(
     string? Title = null,
     string? Comment = null,
+    string? Topic = null,     // v0.3
     Guid? ServerId = null,
     string? ModelId = null);
 

@@ -99,11 +99,12 @@ public class BackendApiClient
         => _http.GetFromJsonAsync<ChatSession>($"/sessions/{id}", JsonOpts, ct);
 
     public async Task<ChatSession?> CreateSessionAsync(
-        Guid serverId, string modelId, string? title = null, List<Guid>? skillIds = null,
+        Guid serverId, string modelId, string? title = null, string? comment = null,
+        string? topic = null, List<Guid>? skillIds = null,
         CancellationToken ct = default)
     {
         var response = await _http.PostAsJsonAsync("/sessions",
-            new { serverId, modelId, title, skillIds }, JsonOpts, ct);
+            new { serverId, modelId, title, comment, topic, skillIds }, JsonOpts, ct);
         response.EnsureSuccessStatusCode();
         return await response.Content.ReadFromJsonAsync<ChatSession>(JsonOpts, ct);
     }
@@ -114,13 +115,13 @@ public class BackendApiClient
         return response.IsSuccessStatusCode;
     }
 
-    // G-04: update session title, comment, server, model
+    // G-04: update session title, comment, server, model, topic
     public async Task<ChatSession?> UpdateSessionMetaAsync(
-        Guid id, string? title = null, string? comment = null,
+        Guid id, string? title = null, string? comment = null, string? topic = null,
         Guid? serverId = null, string? modelId = null, CancellationToken ct = default)
     {
         var response = await _http.PatchAsJsonAsync($"/sessions/{id}/meta",
-            new { title, comment, serverId, modelId }, JsonOpts, ct);
+            new { title, comment, topic, serverId, modelId }, JsonOpts, ct);
         if (response.StatusCode == System.Net.HttpStatusCode.NotFound) return null;
         response.EnsureSuccessStatusCode();
         return await response.Content.ReadFromJsonAsync<ChatSession>(JsonOpts, ct);

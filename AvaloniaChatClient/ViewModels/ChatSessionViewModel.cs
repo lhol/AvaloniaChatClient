@@ -63,6 +63,7 @@ public partial class ChatSessionViewModel : ViewModelBase
     [ObservableProperty] private Guid _sessionId;
     [ObservableProperty] private string _title = "Neue Session";
     [ObservableProperty] private string? _comment;                    // G-03
+    [ObservableProperty] private string? _topic;                      // sidebar grouping
     [ObservableProperty] private bool _isActive;                      // G-02
     [ObservableProperty] private string _inputText = string.Empty;
     [ObservableProperty] private bool _isStreaming;
@@ -70,13 +71,20 @@ public partial class ChatSessionViewModel : ViewModelBase
     [ObservableProperty] private long? _totalMs;
     [ObservableProperty] private string _statusText = string.Empty;
     [ObservableProperty] private ObservableCollection<ChatMessageViewModel> _messages = [];
-    [ObservableProperty] private bool _showMetadata = false;
+    [ObservableProperty] private bool _showMetadata = true;          // visible by default
     [ObservableProperty] private bool _multilineInput = false;        // G-05
 
     // G-04: inline meta editing
     [ObservableProperty] private bool _isEditingMeta = false;
     [ObservableProperty] private string _editTitle = string.Empty;
     [ObservableProperty] private string _editComment = string.Empty;
+    [ObservableProperty] private string _editTopic = string.Empty;
+
+    // v0.3: available topics for dropdown (injected by MainViewModel)
+    [ObservableProperty] private ObservableCollection<string> _availableTopics = [];
+
+    /// <summary>Fired when the session wants to become the active session (e.g. on meta edit).</summary>
+    public event Action? ActivateRequested;
 
     // G-07: server/model selection
     [ObservableProperty] private ObservableCollection<ServerProfile> _availableServers = [];
@@ -197,7 +205,9 @@ public partial class ChatSessionViewModel : ViewModelBase
     {
         EditTitle = Title;
         EditComment = Comment ?? string.Empty;
+        EditTopic = Topic ?? string.Empty;
         IsEditingMeta = true;
+        ActivateRequested?.Invoke();
     }
 
     [RelayCommand]
@@ -206,11 +216,13 @@ public partial class ChatSessionViewModel : ViewModelBase
         try
         {
             var updated = await _api.UpdateSessionMetaAsync(SessionId,
-                title: EditTitle, comment: EditComment);
+                title: EditTitle, comment: EditComment,
+                topic: string.IsNullOrWhiteSpace(EditTopic) ? "" : EditTopic);
             if (updated is not null)
             {
                 Title = updated.Title;
                 Comment = updated.Comment;
+                Topic = updated.Topic;
             }
         }
         catch (Exception ex)

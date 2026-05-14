@@ -23,9 +23,11 @@ public partial class SessionSummaryViewModel : ObservableObject
 
     [ObservableProperty] private string _title;
     [ObservableProperty] private string? _comment;
+    [ObservableProperty] private string? _topic;
     [ObservableProperty] private bool _isEditing;
     [ObservableProperty] private string _editTitle = string.Empty;
     [ObservableProperty] private string _editComment = string.Empty;
+    [ObservableProperty] private string _editTopic = string.Empty;
 
     public string TooltipText =>
         string.IsNullOrWhiteSpace(Comment)
@@ -41,6 +43,7 @@ public partial class SessionSummaryViewModel : ObservableObject
         _parent = parent;
         _title = summary.Title;
         _comment = summary.Comment;
+        _topic = summary.Topic;
     }
 
     [RelayCommand]
@@ -48,6 +51,7 @@ public partial class SessionSummaryViewModel : ObservableObject
     {
         EditTitle = Title;
         EditComment = Comment ?? string.Empty;
+        EditTopic = Topic ?? string.Empty;
         IsEditing = true;
     }
 
@@ -56,9 +60,11 @@ public partial class SessionSummaryViewModel : ObservableObject
     {
         try
         {
-            await _api.UpdateSessionMetaAsync(Summary.Id, title: EditTitle, comment: EditComment);
+            await _api.UpdateSessionMetaAsync(Summary.Id, title: EditTitle, comment: EditComment,
+                topic: string.IsNullOrWhiteSpace(EditTopic) ? "" : EditTopic);
             Title = EditTitle;
             Comment = string.IsNullOrWhiteSpace(EditComment) ? null : EditComment;
+            Topic = string.IsNullOrWhiteSpace(EditTopic) ? null : EditTopic;
         }
         catch (Exception ex)
         {
@@ -117,6 +123,7 @@ public partial class HistoryViewModel : ViewModelBase
             var session = await _api.GetSessionAsync(vm.Summary.Id);
             if (session is null) return;
             var sessionVm = new ChatSessionViewModel(_api, vm.Summary.Id, vm.Title, vm.Comment);
+            sessionVm.Topic = vm.Topic;
             await sessionVm.LoadHistoryAsync();
             await sessionVm.LoadServersAsync();
 

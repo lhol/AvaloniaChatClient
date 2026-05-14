@@ -19,6 +19,7 @@ public record ChatSession(
     Guid Id,
     string Title,
     string? Comment,             // G-03
+    string? Topic,               // v0.3
     Guid ServerId,
     string ModelId,
     DateTimeOffset CreatedAt,
@@ -30,6 +31,7 @@ public record SessionSummary(
     Guid Id,
     string Title,
     string? Comment,             // G-03
+    string? Topic,               // v0.3
     Guid ServerId,
     string ModelId,
     DateTimeOffset CreatedAt,
