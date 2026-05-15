@@ -30,13 +30,14 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{60F7A3F4-D
 		docs\API.md = docs\API.md
 		docs\ARCHITECTURE.md = docs\ARCHITECTURE.md
 		docs\BUILD.md = docs\BUILD.md
+		docs\Featuresv0.1.md = docs\Featuresv0.1.md
 		docs\Featuresv0.2.md = docs\Featuresv0.2.md
 		featuresv0.3.md = featuresv0.3.md
-		docs\Featurev0.1.md = docs\Featurev0.1.md
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Methodology", "Methodology", "{47631050-ECED-4A6D-A298-CD5610083CFB}"
 	ProjectSection(SolutionItems) = preProject
+		spec_v0.1.md = spec_v0.1.md
 		Verification.md = Verification.md
 	EndProjectSection
 EndProject

@@ -1,0 +1,12 @@
+Erstelle einen Plan wie erstellte Softwarearchitekturkonzepte, Spezifikationen, Code und Tests am Besten verifiziert werden können. Dabei ist es gesetztlich vorgeschrieben, dass manche Schritte von Mitarbeitern durchgeführt werden. Da Menschen aber in der wiederkehrenden Verifikation von Arbeitsergebnissen mit hoher Qualität und wenigen Fehlern schnell dazu neigen ihr Skills und auch ihre Aufmerksamkeit zu verlieren.
+Aus diesem Grund ist ein Verfahren zu planen, dass den Mitarbeitern sinnvolle Gestaltungsmöglichkeiten im Rahmen des Reviews bietet und ihnen optimalerweise hilft den Code aktiv zu erforschen und dazu zu lernern. Dabei sollen sie bestmöglichst durch KI unterstützt werden.
+Der Entwicklungsprozess sollte in einem ersten Entwurf folgendermaßen aussehen:
+1.	Der Businesscase wird einem Planungs-KI Modell vorgelegt.
+2.	Die fachlichen Subprozesse und Anforderungen sowie fachliichen Objekte und Businessrules werden durch die KI als Draft erstellt. 2.1 Anforderungen mit umfangreicheren Funktionen sollen in den Spezifikationen als Use Cases strukturiert werden. Functional requirements sollten entweder Business Rules (oftmals Lifecycle von Businessobjekten), Designvorgaben oder Use Cases zugeordnet werden können.
+3.	Die Anforderungen werden von Businessexperten reviewed.
+4.	Parallel überprüft ein anderes KI Modell mit dem maximalen Skillset die Anforderungen und schlägt Verbesserungen vor.
+5.	Diese werden vom Businessexperten reviewed und eingearbeitet werden. Er darf dazu kleine KI Modelle nutzen um "Copy und Paste" zu vermeiden, es ist aber zu wünschen das er kreativ die Vorschläge einarbeitet. Dadurch kann er auch sehen, wie gut sein Review abgeschnitten hat.
+6.	Das KI Programmiermodell erstellt eine Softwarearchitektur.und abschließende Spezifikationen. Dabei werden einige Skills verwendet, um bspw. alle Sicherheitsfeatures in die Speziifkationen aufzunehmen.
+7.	Mit der gleichen Vorgehensweise wie in Schritt 3-5 soll nun auch die Softwarearchitektur analog reviewed werden.
+8.	Das KI Programmiermodell setzt die Vorgaben in Code und Tests um. Dabei nutzt es einen Skill, der alle Sicherheitsvorgaben bei coden berücksichtigt.
+9.	Auch hier wieder ein Review nach Vorbild der Schritte 3-5. Dabei werden aber verschiedene Reviewer genutzt:
