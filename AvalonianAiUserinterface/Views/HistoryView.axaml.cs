@@ -1,0 +1,25 @@
+using Avalonia.Controls;
+using Avaiu.ViewModels;
+
+namespace Avaiu.Views;
+
+public partial class HistoryView : UserControl
+{
+    public HistoryView()
+    {
+        InitializeComponent();
+    }
+
+    protected override void OnAttachedToVisualTree(Avalonia.VisualTreeAttachmentEventArgs e)
+    {
+        base.OnAttachedToVisualTree(e);
+        SetTopLevel();
+        DataContextChanged += (_, _) => SetTopLevel();
+    }
+
+    private void SetTopLevel()
+    {
+        if (DataContext is HistoryViewModel vm)
+            vm.TopLevel = TopLevel.GetTopLevel(this);
+    }
+}

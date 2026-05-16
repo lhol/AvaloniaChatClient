@@ -1,0 +1,140 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Avaiu.ViewModels"
+             x:Class="Avaiu.Views.ChatSessionView"
+             x:DataType="vm:ChatSessionViewModel">
+
+  <Grid RowDefinitions="Auto,*,Auto,Auto,Auto">
+
+    <!-- G-04: Inline meta-edit flyout (visible when IsEditingMeta) -->
+    <Border Grid.Row="0" IsVisible="{Binding IsEditingMeta}"
+            Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
+            BorderThickness="0,0,0,1"
+            BorderBrush="{DynamicResource SystemControlBackgroundBaseLowBrush}"
+            Padding="12,8">
+      <Grid ColumnDefinitions="*,*,*,Auto,Auto">
+        <TextBox Grid.Column="0" Margin="0,0,8,0" Text="{Binding EditTitle}"
+                 PlaceholderText="Titel" />
+        <TextBox Grid.Column="1" Margin="0,0,8,0" Text="{Binding EditComment}"
+                 PlaceholderText="Kommentar (optional)" />
+        <AutoCompleteBox Grid.Column="2" Margin="0,0,8,0"
+                         Text="{Binding EditTopic}"
+                         ItemsSource="{Binding AvailableTopics}"
+                         FilterMode="Contains"
+                         PlaceholderText="Thema (optional, z.B. Arbeit/Notizen)" />
+        <Button Grid.Column="3" Content="✓" Margin="0,0,4,0" Classes="accent"
+                Command="{Binding SaveMetaCommand}" ToolTip.Tip="Speichern"/>
+        <Button Grid.Column="4" Content="✕"
+                Command="{Binding CancelEditMetaCommand}" ToolTip.Tip="Abbrechen"/>
+      </Grid>
+    </Border>
+
+    <!-- Nachrichtenliste -->
+    <ScrollViewer Grid.Row="1" x:Name="MessageScroller">
+      <ItemsControl ItemsSource="{Binding Messages}" Margin="12,8">
+        <ItemsControl.ItemTemplate>
+          <DataTemplate DataType="vm:ChatMessageViewModel">
+            <Grid Margin="0,4" ColumnDefinitions="*,Auto">
+
+              <!-- Benutzer-Nachricht (rechts) -->
+              <Border Grid.Column="1"
+                      IsVisible="{Binding IsUser}"
+                      Padding="12,8" CornerRadius="12,12,2,12"
+                      Background="{DynamicResource SystemAccentColor}"
+                      MaxWidth="480" Margin="48,0,0,0">
+                <TextBlock Text="{Binding Content}" TextWrapping="Wrap" Foreground="White"/>
+              </Border>
+
+              <!-- Assistenten-Nachricht (links) -->
+              <StackPanel Grid.Column="0"
+                          IsVisible="{Binding IsAssistant}"
+                          MaxWidth="560" Margin="0,0,48,0" Spacing="2">
+                <Border Padding="12,8" CornerRadius="12,12,12,2"
+                        Background="{DynamicResource SystemControlBackgroundAltHighBrush}">
+                  <TextBlock Text="{Binding Content}" TextWrapping="Wrap"/>
+                </Border>
+                <!-- G-09: metadata row with server/model/timing -->
+                <TextBlock FontSize="11" Margin="4,0,0,0"
+                           Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                           Text="{Binding MetadataText}"
+                           IsVisible="{Binding ShowMetadata}"/>
+              </StackPanel>
+
+            </Grid>
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+    </ScrollViewer>
+
+    <!-- Statuszeile -->
+    <TextBlock Grid.Row="2" Text="{Binding StatusText}" Margin="14,4" FontSize="12"
+               Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+               IsVisible="{Binding StatusText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+
+    <!-- G-07: Server/Modell-Auswahl über dem Eingabefeld -->
+    <Border Grid.Row="3" BorderThickness="0,1,0,0"
+            IsVisible="{Binding ShowServerChooser}"
+            BorderBrush="{DynamicResource SystemControlBackgroundBaseLowBrush}"
+            Padding="12,6,12,2">
+      <Grid ColumnDefinitions="Auto,*,8,Auto,*,Auto">
+        <TextBlock Grid.Column="0" Text="Server:" VerticalAlignment="Center" Margin="0,0,6,0" FontSize="12"/>
+        <ComboBox Grid.Column="1" ItemsSource="{Binding AvailableServers}"
+                  SelectedItem="{Binding SelectedServer}"
+                  HorizontalAlignment="Stretch" FontSize="12">
+          <ComboBox.ItemTemplate>
+            <DataTemplate>
+              <TextBlock Text="{Binding Name}"/>
+            </DataTemplate>
+          </ComboBox.ItemTemplate>
+        </ComboBox>
+        <TextBlock Grid.Column="3" Text="Modell:" VerticalAlignment="Center" Margin="0,0,6,0" FontSize="12"/>
+        <ComboBox Grid.Column="4" ItemsSource="{Binding AvailableModels}"
+                  SelectedItem="{Binding SelectedModel}"
+                  HorizontalAlignment="Stretch" FontSize="12"
+                  IsEnabled="{Binding !IsLoadingModels}"/>
+        <Button Grid.Column="5" Content="↻" Margin="6,0,0,0"
+                Command="{Binding LoadModelsCommand}"
+                IsEnabled="{Binding !IsLoadingModels}"
+                ToolTip.Tip="Modellliste aktualisieren"/>
+      </Grid>
+    </Border>
+
+    <!-- Eingabebereich -->
+    <Border Grid.Row="4" BorderThickness="0,1,0,0"
+            BorderBrush="{DynamicResource SystemControlBackgroundBaseLowBrush}"
+            Padding="12,8">
+      <Grid ColumnDefinitions="Auto,Auto,Auto,*,Auto,Auto" RowDefinitions="Auto">
+        <!-- new: Toggle server/model chooser (leftmost) -->
+        <Button Grid.Column="0" Content="🖧" Margin="0,0,4,0"
+                Command="{Binding ToggleServerChooserCommand}"
+                Classes.active="{Binding ShowServerChooser}"
+                ToolTip.Tip="Server/Modell-Auswahl ein-/ausblenden"/>
+        <!-- F-04: Toggle metadata -->
+        <Button Grid.Column="1" Content="⏱" Margin="0,0,4,0"
+                Command="{Binding ToggleMetadataCommand}"
+                Classes.active="{Binding ShowMetadata}"
+                ToolTip.Tip="Metadaten ein-/ausblenden"/>
+        <!-- G-05: Toggle multiline -->
+        <Button Grid.Column="2" Content="↕" Margin="0,0,8,0"
+                Command="{Binding ToggleMultilineCommand}"
+                Classes.active="{Binding MultilineInput}"
+                ToolTip.Tip="Mehrzeilige Eingabe ein-/ausschalten"/>
+        <TextBox Grid.Column="3"
+                 Text="{Binding InputText}"
+                 PlaceholderText="Nachricht eingeben…"
+                 AcceptsReturn="{Binding MultilineInput}"
+                 MaxHeight="200"
+                 TextWrapping="Wrap"
+                 x:Name="InputBox"/>
+        <Button Grid.Column="4" Content="✕" Margin="8,0,0,0"
+                Command="{Binding StopStreamingCommand}"
+                IsVisible="{Binding IsStreaming}"
+                ToolTip.Tip="Streaming stoppen"/>
+        <Button Grid.Column="5" Content="Senden" Margin="8,0,0,0" Classes="accent"
+                Command="{Binding SendCommand}"
+                IsVisible="{Binding !IsStreaming}"/>
+      </Grid>
+    </Border>
+
+  </Grid>
+</UserControl>
