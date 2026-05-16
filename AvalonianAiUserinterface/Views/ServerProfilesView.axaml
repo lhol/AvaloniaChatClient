@@ -2,6 +2,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:Avaiu.ViewModels"
              xmlns:models="using:Avaiu.Models"
+             xmlns:conv="using:Avaiu.Converters"
              x:Class="Avaiu.Views.ServerProfilesView"
              x:DataType="vm:ServerProfilesViewModel">
 
@@ -69,6 +70,17 @@
         <NumericUpDown Value="{Binding EditPort}" Minimum="1" Maximum="65535" FormatString="0" Increment="1"/>
         <TextBox PlaceholderText="Token (optional)" Text="{Binding EditToken}" PasswordChar="●"/>
         <ComboBox ItemsSource="{Binding Protocols}" SelectedItem="{Binding EditProtocol}" HorizontalAlignment="Stretch"/>
+
+        <!-- Server-Typ Hinweis -->
+        <TextBlock IsVisible="{Binding EditProtocol, Converter={x:Static conv:EnumEqualityConverter.Instance}, ConverterParameter=LmStudio}"
+                   Text="LM Studio: Metadaten via /v1/models und /v1/system_info verfügbar."
+                   FontSize="11" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"/>
+        <TextBlock IsVisible="{Binding EditProtocol, Converter={x:Static conv:EnumEqualityConverter.Instance}, ConverterParameter=Vllm}"
+                   Text="vllm: Metadaten via /metrics (Prometheus) verfügbar."
+                   FontSize="11" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"/>
+        <TextBlock IsVisible="{Binding EditProtocol, Converter={x:Static conv:EnumEqualityConverter.Instance}, ConverterParameter=OpenAI}"
+                   Text="OpenAI-kompatibel: Token-Nutzung aus usage-Objekt der API-Antwort."
+                   FontSize="11" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"/>
 
         <!-- G-10: Standardmodell mit Reload-Button -->
         <TextBlock Text="Standardmodell:" FontSize="13"/>

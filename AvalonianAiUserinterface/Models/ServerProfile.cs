@@ -2,7 +2,7 @@ using System;
 
 namespace Avaiu.Models;
 
-public enum LlmProtocol { OpenAI, Anthropic, LmStudio, Custom }
+public enum LlmProtocol { OpenAI, Anthropic, LmStudio, Vllm, Custom }
 
 public record ServerProfile(
     Guid Id,

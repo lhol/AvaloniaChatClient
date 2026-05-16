@@ -90,10 +90,32 @@ public partial class HistoryViewModel : ViewModelBase
     [ObservableProperty] private ObservableCollection<SkillSummary> _skills = [];
     [ObservableProperty] private bool _isLoading;
     [ObservableProperty] private string _statusText = string.Empty;
+    [ObservableProperty] private SkillSummary? _selectedSkillItem;
+    [ObservableProperty] private SkillContent? _selectedSkillContent;
+    [ObservableProperty] private SessionSummaryViewModel? _selectedSession;
 
     public HistoryViewModel(BackendApiClient api)
     {
         _api = api;
+    }
+
+    partial void OnSelectedSkillItemChanged(SkillSummary? value)
+    {
+        SelectedSkillContent = null;
+        if (value is not null)
+            _ = LoadSelectedSkillContentAsync(value.Id);
+    }
+
+    private async Task LoadSelectedSkillContentAsync(Guid id)
+    {
+        try
+        {
+            SelectedSkillContent = await _api.GetSkillAsync(id);
+        }
+        catch (Exception ex)
+        {
+            AppErrorService.Instance.Report("HistoryViewModel.LoadSkillContent", ex);
+        }
     }
 
     [RelayCommand]

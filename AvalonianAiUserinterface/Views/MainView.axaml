@@ -35,21 +35,37 @@
     </Border>
 
     <!-- Main body: left sidebar + right content -->
-    <Grid Grid.Row="1" ColumnDefinitions="220,Auto,*">
+    <Grid Grid.Row="1" x:Name="MainBodyGrid">
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="{Binding IsSidebarCollapsed, Converter={StaticResource BoolToGridLengthConverter}}"/>
+        <ColumnDefinition Width="Auto"/>
+        <ColumnDefinition Width="*"/>
+      </Grid.ColumnDefinitions>
 
       <!-- LEFT SIDEBAR -->
       <Grid Grid.Column="0" RowDefinitions="Auto,*,Auto">
 
-        <!-- Sidebar header -->
+        <!-- Sidebar header with fold button -->
         <Border Grid.Row="0" BorderThickness="0,0,0,1"
                 BorderBrush="{DynamicResource SystemControlBackgroundBaseLowBrush}"
                 Background="{DynamicResource SystemControlBackgroundChromeMediumBrush}"
-                Padding="10,6">
-          <TextBlock Text="Sessions" FontWeight="SemiBold" FontSize="13"/>
+                Padding="4,4">
+          <Grid ColumnDefinitions="Auto,*">
+            <Button Grid.Column="0"
+                    Command="{Binding ToggleSidebarCommand}"
+                    Padding="6,4" Background="Transparent" BorderThickness="0"
+                    ToolTip.Tip="{Binding IsSidebarCollapsed, Converter={StaticResource BoolToChevronConverter}}">
+              <TextBlock Text="{Binding IsSidebarCollapsed, Converter={StaticResource BoolToChevronConverter}}"
+                         FontSize="12"/>
+            </Button>
+            <TextBlock Grid.Column="1" Text="Aktive Sessions" FontWeight="SemiBold" FontSize="13"
+                       VerticalAlignment="Center" Margin="4,0,0,0"
+                       IsVisible="{Binding !IsSidebarCollapsed}"/>
+          </Grid>
         </Border>
 
-        <!-- Session group tree -->
-        <ScrollViewer Grid.Row="1">
+        <!-- Session group tree (expanded mode only) -->
+        <ScrollViewer Grid.Row="1" IsVisible="{Binding !IsSidebarCollapsed}">
           <ItemsControl ItemsSource="{Binding SessionGroups}">
             <ItemsControl.ItemTemplate>
               <DataTemplate DataType="vm:SessionGroupViewModel">
@@ -92,10 +108,10 @@
                                 <Button HorizontalAlignment="Stretch"
                                         HorizontalContentAlignment="Left"
                                         Padding="28,5,6,5" Margin="0,1,0,0"
-                                        Background="Transparent" BorderThickness="0"
                                         ToolTip.Tip="{Binding TabTooltip}"
                                         Command="{Binding $parent[UserControl].((vm:MainViewModel)DataContext).ActivateSessionCommand}"
                                         CommandParameter="{Binding}"
+                                        Classes="session-btn"
                                         Classes.active="{Binding IsActive}">
                                   <Grid ColumnDefinitions="*,Auto">
                                     <StackPanel Grid.Column="0" Spacing="1">
@@ -133,10 +149,10 @@
                         <Button HorizontalAlignment="Stretch"
                                 HorizontalContentAlignment="Left"
                                 Padding="18,5,6,5" Margin="0,1,0,0"
-                                Background="Transparent" BorderThickness="0"
                                 ToolTip.Tip="{Binding TabTooltip}"
                                 Command="{Binding $parent[UserControl].((vm:MainViewModel)DataContext).ActivateSessionCommand}"
                                 CommandParameter="{Binding}"
+                                Classes="session-btn"
                                 Classes.active="{Binding IsActive}">
                           <Grid ColumnDefinitions="*,Auto">
                             <StackPanel Grid.Column="0" Spacing="1">
@@ -171,22 +187,60 @@
 
         <!-- Nav buttons at bottom of sidebar -->
         <StackPanel Grid.Row="2" Spacing="2" Margin="4,4">
-          <Button HorizontalAlignment="Stretch" HorizontalContentAlignment="Left"
-                  Padding="10,6" Background="Transparent" BorderThickness="0"
-                  Command="{Binding SwitchToServerTabCommand}">
-            <StackPanel Orientation="Horizontal" Spacing="6">
-              <TextBlock Text="⚙" FontSize="14" VerticalAlignment="Center"/>
-              <TextBlock Text="Server" VerticalAlignment="Center"/>
-            </StackPanel>
-          </Button>
-          <Button HorizontalAlignment="Stretch" HorizontalContentAlignment="Left"
-                  Padding="10,6" Background="Transparent" BorderThickness="0"
-                  Command="{Binding SwitchToHistoryTabCommand}">
-            <StackPanel Orientation="Horizontal" Spacing="6">
-              <TextBlock Text="🕐" FontSize="14" VerticalAlignment="Center"/>
-              <TextBlock Text="Historien" VerticalAlignment="Center"/>
-            </StackPanel>
-          </Button>
+          <!-- Expanded mode: full buttons with text -->
+          <StackPanel IsVisible="{Binding !IsSidebarCollapsed}" Spacing="2">
+            <Button HorizontalAlignment="Stretch" HorizontalContentAlignment="Left"
+                    Padding="10,6" Background="Transparent" BorderThickness="0"
+                    Command="{Binding SwitchToServerTabCommand}">
+              <StackPanel Orientation="Horizontal" Spacing="6">
+                <TextBlock Text="⚙" FontSize="14" VerticalAlignment="Center"/>
+                <TextBlock Text="Server" VerticalAlignment="Center"/>
+              </StackPanel>
+            </Button>
+            <Button HorizontalAlignment="Stretch" HorizontalContentAlignment="Left"
+                    Padding="10,6" Background="Transparent" BorderThickness="0"
+                    Command="{Binding SwitchToHistoryTabCommand}">
+              <StackPanel Orientation="Horizontal" Spacing="6">
+                <TextBlock Text="🕐" FontSize="14" VerticalAlignment="Center"/>
+                <TextBlock Text="Historien" VerticalAlignment="Center"/>
+              </StackPanel>
+            </Button>
+            <Button HorizontalAlignment="Stretch" HorizontalContentAlignment="Left"
+                    Padding="10,6" Background="Transparent" BorderThickness="0"
+                    Command="{Binding SwitchToSkillsTabCommand}">
+              <StackPanel Orientation="Horizontal" Spacing="6">
+                <TextBlock Text="🎓" FontSize="14" VerticalAlignment="Center"/>
+                <TextBlock Text="Skills" VerticalAlignment="Center"/>
+              </StackPanel>
+            </Button>
+          </StackPanel>
+          <!-- Collapsed mode: icon-only buttons -->
+          <StackPanel IsVisible="{Binding IsSidebarCollapsed}" Spacing="2">
+            <Button HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
+                    Padding="6,8" Background="Transparent" BorderThickness="0"
+                    ToolTip.Tip="Chat"
+                    Command="{Binding ExpandSidebarForChatCommand}">
+              <TextBlock Text="💬" FontSize="16"/>
+            </Button>
+            <Button HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
+                    Padding="6,8" Background="Transparent" BorderThickness="0"
+                    ToolTip.Tip="Server"
+                    Command="{Binding SwitchToServerTabCommand}">
+              <TextBlock Text="⚙" FontSize="16"/>
+            </Button>
+            <Button HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
+                    Padding="6,8" Background="Transparent" BorderThickness="0"
+                    ToolTip.Tip="Historien"
+                    Command="{Binding SwitchToHistoryTabCommand}">
+              <TextBlock Text="🕐" FontSize="16"/>
+            </Button>
+            <Button HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
+                    Padding="6,8" Background="Transparent" BorderThickness="0"
+                    ToolTip.Tip="Skills"
+                    Command="{Binding SwitchToSkillsTabCommand}">
+              <TextBlock Text="🎓" FontSize="16"/>
+            </Button>
+          </StackPanel>
         </StackPanel>
       </Grid>
 
@@ -225,6 +279,11 @@
           <!-- Tab 2: History -->
           <TabItem Header="Historien">
             <views:HistoryView DataContext="{Binding History}"/>
+          </TabItem>
+
+          <!-- Tab 3: Skills -->
+          <TabItem Header="Skills">
+            <views:SkillsView DataContext="{Binding History}"/>
           </TabItem>
 
         </TabControl>

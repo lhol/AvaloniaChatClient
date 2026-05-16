@@ -1,0 +1,62 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+			 xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+			 xmlns:vm="using:Avaiu.ViewModels"
+			 xmlns:models="using:Avaiu.Models"
+			 x:Class="Avaiu.Views.SkillsView"
+			 x:DataType="vm:HistoryViewModel">
+
+  <Grid ColumnDefinitions="200,Auto,*">
+
+	<!-- Skills list -->
+	<Grid Grid.Column="0" RowDefinitions="Auto,*,Auto">
+	  <TextBlock Grid.Row="0" Text="Skills" FontSize="16" FontWeight="SemiBold" Margin="12,12,12,4"/>
+	  <ListBox Grid.Row="1" ItemsSource="{Binding Skills}"
+			   SelectedItem="{Binding SelectedSkillItem}"
+			   Margin="8,0">
+		<ListBox.ItemTemplate>
+		  <DataTemplate DataType="models:SkillSummary">
+			<StackPanel Spacing="2" Margin="2,4">
+			  <TextBlock Text="{Binding Title}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"/>
+			  <TextBlock FontSize="11" Text="{Binding CreatedAt, StringFormat='{}{0:dd.MM.yyyy}'}"
+						 Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"/>
+			</StackPanel>
+		  </DataTemplate>
+		</ListBox.ItemTemplate>
+	  </ListBox>
+	  <TextBlock Grid.Row="2" Text="{Binding StatusText}" Margin="12,4" FontSize="12"
+				 IsVisible="{Binding StatusText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+	</Grid>
+
+	<!-- Splitter -->
+	<GridSplitter Grid.Column="1" Width="3" ResizeDirection="Columns"
+				  Background="{DynamicResource SystemControlBackgroundBaseLowBrush}"/>
+
+	<!-- Skill detail -->
+	<Grid Grid.Column="2">
+	  <!-- Placeholder when nothing selected -->
+	  <TextBlock Text="Skill auswählen…"
+				 HorizontalAlignment="Center" VerticalAlignment="Center"
+				 Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+				 IsVisible="{Binding SelectedSkillItem, Converter={x:Static ObjectConverters.IsNull}}"/>
+
+	  <!-- Detail panel -->
+	  <ScrollViewer IsVisible="{Binding SelectedSkillItem, Converter={x:Static ObjectConverters.IsNotNull}}">
+		<StackPanel Spacing="8" Margin="16,12">
+		  <TextBlock Text="{Binding SelectedSkillContent.Title}" FontSize="18" FontWeight="Bold"
+					 IsVisible="{Binding SelectedSkillContent, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+		  <TextBlock FontSize="11" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+					 Text="{Binding SelectedSkillContent.CreatedAt, StringFormat='Erstellt: {0:dd.MM.yyyy HH:mm}'}"
+					 IsVisible="{Binding SelectedSkillContent, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+		  <TextBlock Text="{Binding SelectedSkillContent.Markdown}" TextWrapping="Wrap"
+					 IsVisible="{Binding SelectedSkillContent, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+		  <Button Content="🗑 Löschen"
+				  Command="{Binding DeleteSkillCommand}"
+				  CommandParameter="{Binding SelectedSkillItem}"
+				  Classes="danger"
+				  IsVisible="{Binding SelectedSkillItem, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+		</StackPanel>
+	  </ScrollViewer>
+	</Grid>
+
+  </Grid>
+</UserControl>

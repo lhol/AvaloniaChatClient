@@ -4,7 +4,7 @@
              x:Class="Avaiu.Views.ChatSessionView"
              x:DataType="vm:ChatSessionViewModel">
 
-  <Grid RowDefinitions="Auto,*,Auto,Auto,Auto">
+  <Grid RowDefinitions="Auto,*,Auto,Auto,Auto,Auto">
 
     <!-- G-04: Inline meta-edit flyout (visible when IsEditingMeta) -->
     <Border Grid.Row="0" IsVisible="{Binding IsEditingMeta}"
@@ -71,8 +71,53 @@
                Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
                IsVisible="{Binding StatusText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
 
+    <!-- Metadaten-Panel: separat, live aktuell nach jeder Antwort -->
+    <Border Grid.Row="3" IsVisible="{Binding ShowMetadata}"
+            Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
+            BorderThickness="0,1,0,0"
+            BorderBrush="{DynamicResource SystemControlBackgroundBaseLowBrush}"
+            Padding="12,6">
+      <WrapPanel Orientation="Horizontal"
+                 DataContext="{Binding CurrentMetadata}">
+        <TextBlock FontSize="11" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                   IsVisible="{Binding ServerName, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                   Margin="0,0,16,0">
+          <Run Text="Server: "/><Run Text="{Binding ServerName}"/>
+        </TextBlock>
+        <TextBlock FontSize="11" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                   IsVisible="{Binding ModelName, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                   Margin="0,0,16,0">
+          <Run Text="Modell: "/><Run Text="{Binding ModelName}"/>
+        </TextBlock>
+        <TextBlock FontSize="11" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                   IsVisible="{Binding TtftMs, Converter={x:Static ObjectConverters.IsNotNull}}"
+                   Margin="0,0,16,0">
+          <Run Text="TTFT: "/><Run Text="{Binding TtftMs}"/><Run Text=" ms"/>
+        </TextBlock>
+        <TextBlock FontSize="11" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                   IsVisible="{Binding TotalMs, Converter={x:Static ObjectConverters.IsNotNull}}"
+                   Margin="0,0,16,0">
+          <Run Text="Gesamt: "/><Run Text="{Binding TotalMs}"/><Run Text=" ms"/>
+        </TextBlock>
+        <TextBlock FontSize="11" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                   IsVisible="{Binding InputTokens, Converter={x:Static ObjectConverters.IsNotNull}}"
+                   Margin="0,0,16,0">
+          <Run Text="In: "/><Run Text="{Binding InputTokens}"/>
+        </TextBlock>
+        <TextBlock FontSize="11" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                   IsVisible="{Binding OutputTokens, Converter={x:Static ObjectConverters.IsNotNull}}"
+                   Margin="0,0,16,0">
+          <Run Text="Out: "/><Run Text="{Binding OutputTokens}"/>
+        </TextBlock>
+        <TextBlock FontSize="11" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                   IsVisible="{Binding Timestamp, Converter={x:Static ObjectConverters.IsNotNull}}">
+          <Run Text="{Binding Timestamp, StringFormat='{}{0:HH:mm:ss}'}"/>
+        </TextBlock>
+      </WrapPanel>
+    </Border>
+
     <!-- G-07: Server/Modell-Auswahl über dem Eingabefeld -->
-    <Border Grid.Row="3" BorderThickness="0,1,0,0"
+    <Border Grid.Row="4" BorderThickness="0,1,0,0"
             IsVisible="{Binding ShowServerChooser}"
             BorderBrush="{DynamicResource SystemControlBackgroundBaseLowBrush}"
             Padding="12,6,12,2">
@@ -100,7 +145,7 @@
     </Border>
 
     <!-- Eingabebereich -->
-    <Border Grid.Row="4" BorderThickness="0,1,0,0"
+    <Border Grid.Row="5" BorderThickness="0,1,0,0"
             BorderBrush="{DynamicResource SystemControlBackgroundBaseLowBrush}"
             Padding="12,8">
       <Grid ColumnDefinitions="Auto,Auto,Auto,*,Auto,Auto" RowDefinitions="Auto">

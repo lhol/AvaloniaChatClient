@@ -1,123 +1,128 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:Avaiu.ViewModels"
-             xmlns:models="using:Avaiu.Models"
              xmlns:conv="using:Avaiu.Converters"
              x:Class="Avaiu.Views.HistoryView"
              x:DataType="vm:HistoryViewModel">
 
-  <Grid RowDefinitions="Auto,*,Auto,*,Auto">
+  <Grid ColumnDefinitions="250,Auto,*">
 
-    <!-- Sessions -->
-    <TextBlock Grid.Row="0" Text="Chat-Historien" FontSize="16" FontWeight="SemiBold" Margin="12,12,12,4"/>
-
-    <ScrollViewer Grid.Row="1">
-      <ItemsControl ItemsSource="{Binding Sessions}" Margin="12,0" x:Name="SessionsList">
-        <ItemsControl.ItemTemplate>
+    <!-- Linke Liste -->
+    <Grid Grid.Column="0" RowDefinitions="Auto,*,Auto">
+      <TextBlock Grid.Row="0" Text="Chat-Historien" FontSize="16" FontWeight="SemiBold" Margin="12,12,12,4"/>
+      <ListBox Grid.Row="1" ItemsSource="{Binding Sessions}"
+               SelectedItem="{Binding SelectedSession}"
+               Margin="8,0">
+        <ListBox.ItemTemplate>
           <DataTemplate DataType="vm:SessionSummaryViewModel">
-            <!-- G-03: tooltip with GUID + comment -->
-            <Border Margin="0,3" Padding="10" CornerRadius="6"
-                    Background="{DynamicResource SystemControlBackgroundAltHighBrush}"
-                    ToolTip.Tip="{Binding TooltipText}">
-              <StackPanel Spacing="4">
-                <!-- G-04: read view (not editing) -->
-                <Grid ColumnDefinitions="*,Auto" IsVisible="{Binding !IsEditing}">
-                  <StackPanel Grid.Column="0" Spacing="2">
-                    <TextBlock Text="{Binding Title}" FontWeight="SemiBold"/>
-                    <!-- G-03: comment subtext -->
-                    <TextBlock Text="{Binding Comment}" FontSize="11" FontStyle="Italic"
-                               IsVisible="{Binding Comment, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
-                               Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"/>
-                    <TextBlock FontSize="11" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}">
-                      <Run Text="{Binding Summary.ModelId}"/>
-                      <Run Text=" · "/>
-                      <Run Text="{Binding Summary.MessageCount}"/>
-                      <Run Text=" Nachrichten · "/>
-                      <Run Text="{Binding Summary.UpdatedAt, StringFormat='{}{0:dd.MM.yyyy HH:mm}'}"/>
-                    </TextBlock>
-                  </StackPanel>
-                  <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
-                    <!-- G-04: edit button -->
-                    <Button Content="✎"
-                            Command="{Binding StartEditCommand}"
-                            ToolTip.Tip="Titel und Kommentar bearbeiten"/>
-                    <!-- F-01: disable Öffnen when already open -->
-                    <Button Content="Öffnen"
-                            Command="{Binding $parent[ItemsControl].((vm:HistoryViewModel)DataContext).OpenSessionCommand}"
-                            CommandParameter="{Binding}">
-                      <Button.IsEnabled>
-                        <MultiBinding Converter="{x:Static conv:NotInCollectionConverter.Instance}">
-                          <Binding Path="Summary.Id"/>
-                          <Binding Path="$parent[UserControl].((vm:HistoryViewModel)DataContext).OpenSessionIds"/>
-                        </MultiBinding>
-                      </Button.IsEnabled>
-                    </Button>
-                    <Button Content="⬇ JSON"
-                            Command="{Binding $parent[ItemsControl].((vm:HistoryViewModel)DataContext).DownloadJsonCommand}"
-                            CommandParameter="{Binding}"
-                            ToolTip.Tip="Als JSON herunterladen"/>
-                    <Button Content="⬇ MD"
-                            Command="{Binding $parent[ItemsControl].((vm:HistoryViewModel)DataContext).DownloadMarkdownCommand}"
-                            CommandParameter="{Binding}"
-                            ToolTip.Tip="Als Markdown herunterladen"/>
-                    <Button Content="→ Skill"
-                            Command="{Binding $parent[ItemsControl].((vm:HistoryViewModel)DataContext).ExportSkillCommand}"
-                            CommandParameter="{Binding}"
-                            ToolTip.Tip="Als Skill exportieren"/>
-                    <Button Content="🗑"
-                            Command="{Binding $parent[ItemsControl].((vm:HistoryViewModel)DataContext).DeleteSessionCommand}"
-                            CommandParameter="{Binding}"
-                            Classes="danger"/>
-                  </StackPanel>
-                </Grid>
-
-                <!-- G-04: inline edit view -->
-                <Grid ColumnDefinitions="*,*,Auto,Auto" IsVisible="{Binding IsEditing}">
-                  <TextBox Grid.Column="0" Margin="0,0,6,0" Text="{Binding EditTitle}"
-                           PlaceholderText="Titel"/>
-                  <TextBox Grid.Column="1" Margin="0,0,6,0" Text="{Binding EditComment}"
-                           PlaceholderText="Kommentar (optional)"/>
-                  <Button Grid.Column="2" Content="✓" Margin="0,0,4,0" Classes="accent"
-                          Command="{Binding SaveEditCommand}" ToolTip.Tip="Speichern"/>
-                  <Button Grid.Column="3" Content="✕"
-                          Command="{Binding CancelEditCommand}" ToolTip.Tip="Abbrechen"/>
-                </Grid>
-              </StackPanel>
-            </Border>
+            <StackPanel Spacing="2" Margin="2,4">
+              <TextBlock Text="{Binding Title}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"/>
+              <TextBlock FontSize="11" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}">
+                <Run Text="{Binding Summary.UpdatedAt, StringFormat='{}{0:dd.MM.yyyy HH:mm}'}"/>
+              </TextBlock>
+            </StackPanel>
           </DataTemplate>
-        </ItemsControl.ItemTemplate>
-      </ItemsControl>
-    </ScrollViewer>
+        </ListBox.ItemTemplate>
+      </ListBox>
+      <TextBlock Grid.Row="2" Text="{Binding StatusText}" Margin="12,4" FontSize="12"
+                 IsVisible="{Binding StatusText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+    </Grid>
 
-    <!-- Skills -->
-    <TextBlock Grid.Row="2" Text="Skills" FontSize="16" FontWeight="SemiBold" Margin="12,12,12,4"/>
+    <!-- Splitter -->
+    <GridSplitter Grid.Column="1" Width="3" ResizeDirection="Columns"
+                  Background="{DynamicResource SystemControlBackgroundBaseLowBrush}"/>
 
-    <ScrollViewer Grid.Row="3">
-      <ItemsControl ItemsSource="{Binding Skills}" Margin="12,0">
-        <ItemsControl.ItemTemplate>
-          <DataTemplate DataType="models:SkillSummary">
-            <Border Margin="0,3" Padding="10" CornerRadius="6"
-                    Background="{DynamicResource SystemControlBackgroundAltHighBrush}">
-              <Grid ColumnDefinitions="*,Auto">
-                <StackPanel Grid.Column="0" Spacing="2">
-                  <TextBlock Text="{Binding Title}" FontWeight="SemiBold"/>
-                  <TextBlock FontSize="11" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
-                             Text="{Binding CreatedAt, StringFormat='Erstellt: {0:dd.MM.yyyy HH:mm}'}"/>
-                </StackPanel>
-                <Button Grid.Column="1" Content="🗑"
-                        Command="{Binding $parent[ItemsControl].((vm:HistoryViewModel)DataContext).DeleteSkillCommand}"
-                        CommandParameter="{Binding}"
-                        Classes="danger" VerticalAlignment="Center"/>
-              </Grid>
-            </Border>
-          </DataTemplate>
-        </ItemsControl.ItemTemplate>
-      </ItemsControl>
-    </ScrollViewer>
+    <!-- Rechtes Detailpanel -->
+    <Grid Grid.Column="2">
 
-    <!-- Statuszeile -->
-    <TextBlock Grid.Row="4" Text="{Binding StatusText}" Margin="12,4" FontSize="12"
-               IsVisible="{Binding StatusText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+      <!-- Platzhalter -->
+      <TextBlock Text="Session auswählen…"
+                 HorizontalAlignment="Center" VerticalAlignment="Center"
+                 Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                 IsVisible="{Binding SelectedSession, Converter={x:Static ObjectConverters.IsNull}}"/>
+
+      <!-- Detailansicht -->
+      <ScrollViewer IsVisible="{Binding SelectedSession, Converter={x:Static ObjectConverters.IsNotNull}}">
+        <StackPanel Spacing="12" Margin="16,12" DataContext="{Binding SelectedSession}">
+
+          <!-- Leseansicht -->
+          <StackPanel Spacing="6" IsVisible="{Binding !IsEditing}">
+            <TextBlock Text="{Binding Title}" FontSize="18" FontWeight="Bold"/>
+            <TextBlock FontSize="12" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                       IsVisible="{Binding Comment, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                       Text="{Binding Comment}" FontStyle="Italic"/>
+            <WrapPanel Orientation="Horizontal">
+              <TextBlock FontSize="12" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                         IsVisible="{Binding Topic, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                         Margin="0,0,12,0">
+                <Run Text="Thema: "/><Run Text="{Binding Topic}"/>
+              </TextBlock>
+              <TextBlock FontSize="12" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                         Margin="0,0,12,0">
+                <Run Text="Modell: "/><Run Text="{Binding Summary.ModelId}"/>
+              </TextBlock>
+              <TextBlock FontSize="12" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                         Margin="0,0,12,0">
+                <Run Text="{Binding Summary.MessageCount}"/><Run Text=" Nachrichten"/>
+              </TextBlock>
+              <TextBlock FontSize="12" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}">
+                <Run Text="Aktualisiert: "/>
+                <Run Text="{Binding Summary.UpdatedAt, StringFormat='{}{0:dd.MM.yyyy HH:mm}'}"/>
+              </TextBlock>
+            </WrapPanel>
+
+            <!-- Aktionsbuttons -->
+            <WrapPanel Orientation="Horizontal" Margin="0,8,0,0">
+              <Button Content="Öffnen" Margin="0,0,6,4"
+                      Command="{Binding $parent[UserControl].((vm:HistoryViewModel)DataContext).OpenSessionCommand}"
+                      CommandParameter="{Binding}">
+                <Button.IsEnabled>
+                  <MultiBinding Converter="{x:Static conv:NotInCollectionConverter.Instance}">
+                    <Binding Path="Summary.Id"/>
+                    <Binding Path="$parent[UserControl].((vm:HistoryViewModel)DataContext).OpenSessionIds"/>
+                  </MultiBinding>
+                </Button.IsEnabled>
+              </Button>
+              <Button Content="✎ Bearbeiten" Margin="0,0,6,4"
+                      Command="{Binding StartEditCommand}"
+                      ToolTip.Tip="Titel, Kommentar und Thema bearbeiten"/>
+              <Button Content="⬇ JSON" Margin="0,0,6,4"
+                      Command="{Binding $parent[UserControl].((vm:HistoryViewModel)DataContext).DownloadJsonCommand}"
+                      CommandParameter="{Binding}"
+                      ToolTip.Tip="Als JSON herunterladen"/>
+              <Button Content="⬇ MD" Margin="0,0,6,4"
+                      Command="{Binding $parent[UserControl].((vm:HistoryViewModel)DataContext).DownloadMarkdownCommand}"
+                      CommandParameter="{Binding}"
+                      ToolTip.Tip="Als Markdown herunterladen"/>
+              <Button Content="→ Skill" Margin="0,0,6,4"
+                      Command="{Binding $parent[UserControl].((vm:HistoryViewModel)DataContext).ExportSkillCommand}"
+                      CommandParameter="{Binding}"
+                      ToolTip.Tip="Als Skill exportieren"/>
+              <Button Content="🗑 Löschen" Margin="0,0,0,4"
+                      Command="{Binding $parent[UserControl].((vm:HistoryViewModel)DataContext).DeleteSessionCommand}"
+                      CommandParameter="{Binding}"
+                      Classes="danger"/>
+            </WrapPanel>
+          </StackPanel>
+
+          <!-- Inline-Editformular -->
+          <StackPanel Spacing="8" IsVisible="{Binding IsEditing}">
+            <TextBlock Text="Session bearbeiten" FontSize="14" FontWeight="SemiBold"/>
+            <TextBlock Text="Titel:" FontSize="12"/>
+            <TextBox Text="{Binding EditTitle}" PlaceholderText="Titel"/>
+            <TextBlock Text="Kommentar:" FontSize="12"/>
+            <TextBox Text="{Binding EditComment}" PlaceholderText="Kommentar (optional)"/>
+            <TextBlock Text="Thema:" FontSize="12"/>
+            <TextBox Text="{Binding EditTopic}" PlaceholderText="Thema (optional)"/>
+            <StackPanel Orientation="Horizontal" Spacing="8">
+              <Button Content="✓ Speichern" Classes="accent" Command="{Binding SaveEditCommand}"/>
+              <Button Content="✕ Abbrechen" Command="{Binding CancelEditCommand}"/>
+            </StackPanel>
+          </StackPanel>
+
+        </StackPanel>
+      </ScrollViewer>
+    </Grid>
 
   </Grid>
 </UserControl>

@@ -39,6 +39,7 @@ public partial class MainViewModel : ViewModelBase
     [ObservableProperty] private ChatSessionViewModel? _activeSession;
     [ObservableProperty] private int _selectedTabIndex;
     [ObservableProperty] private bool _backendReachable;
+    [ObservableProperty] private bool _isSidebarCollapsed;
     [ObservableProperty] private string _backendStatus = "Verbinde…";
     [ObservableProperty] private int _errorCount;
 
@@ -272,6 +273,22 @@ public partial class MainViewModel : ViewModelBase
 
     [RelayCommand]
     private void SwitchToHistoryTab() => SelectedTabIndex = 2;
+
+    [RelayCommand]
+    private void SwitchToSkillsTab() => SelectedTabIndex = 3;
+
+    [RelayCommand]
+    private void ExpandSidebarForChat()
+    {
+        // If more than one session exists, expand sidebar so user can pick; otherwise switch to chat tab
+        if (Sessions.Count > 1)
+            IsSidebarCollapsed = false;
+        else
+            SelectedTabIndex = 1;
+    }
+
+    [RelayCommand]
+    private void ToggleSidebar() => IsSidebarCollapsed = !IsSidebarCollapsed;
 
     [RelayCommand]
     private void ActivateSession(ChatSessionViewModel vm)
